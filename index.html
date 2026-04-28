@@ -862,7 +862,7 @@
   <!-- ============================================================ CALENDAR -->
   <section class="view" id="view-calendar">
     <h1 class="view-title">Calendar View</h1>
-    <p class="view-sub">Predicted milestones based on inoculation dates · 6 phase track</p>
+    <p class="view-sub">Predicted milestones based on spawn dates · 6 phase track</p>
     <div class="panel">
       <div id="calendar"></div>
     </div>
@@ -911,7 +911,7 @@ const PHASES = [
       "Add ~50% bulk substrate, then mix in 1 lb spawn — this is the MIDDLE.",
       "Top with remaining bulk, then cap with the final 1 lb spawn (TOP CAP).",
       "Lid on, vent holes taped, store at 77°F dark.",
-      "Log inoculation_date — phase auto-advances to Colonization."
+      "Log the spawn date — phase auto-advances to Colonization."
     ]},
   { n: 2, name: "Colonization", days: 11, short: "Colonize", color: "#00b8d4",
     intro: "Mycelium runs through the substrate. Keep dark, warm, sealed.",
@@ -1243,7 +1243,7 @@ function sumWet(arr) { return arr.reduce((a, h) => a + (Number(h.wet_weight_g) |
 function sumDry(arr) { return arr.reduce((a, h) => a + (Number(h.dry_weight_g) || 0), 0); }
 
 function nextMilestone(tub) {
-  if (!tub.inoculation_date) return { label: "Set inoculation date", days: null };
+  if (!tub.inoculation_date) return { label: "Set spawn date", days: null };
   const ph = phaseObj(tub.current_phase);
   const log = tubPhaseLog(tub.id).find(p => p.phase_number === tub.current_phase);
   const startedAt = log ? log.entered_at : tub.inoculation_date;
@@ -1323,10 +1323,10 @@ function renderDashboard() {
           ${t.inoculation_date ? `
           <div class="tub-meta">
             <div><div class="k">Age</div><div class="v">${age}d</div></div>
-            <div><div class="k">Inoc</div><div class="v">${fmtDate(t.inoculation_date)}</div></div>
+            <div><div class="k">Spawn</div><div class="v">${fmtDate(t.inoculation_date)}</div></div>
             <div><div class="k">${escapeHtml(ms.label)}</div><div class="v">${ms.days === null ? "—" : (ms.days >= 0 ? `${ms.days}d` : `+${-ms.days}d`)}</div></div>
           </div>` : `
-          <div class="tub-cta">Tap to set inoculation date →</div>`}
+          <div class="tub-cta">Tap to set spawn date →</div>`}
         </div>
       </div>`;
   }).join("");
@@ -1368,7 +1368,7 @@ function renderAlerts() {
     const elapsed = startedAt ? daysSince(startedAt) : null;
 
     if (!t.inoculation_date) {
-      out.push({ kind: "info", body: `<b>Tub ${t.tub_number}:</b> needs inoculation date<small>Open the tub and set the inoculation date to start the timer.</small>` });
+      out.push({ kind: "info", body: `<b>Tub ${t.tub_number}:</b> needs spawn date<small>Open the tub and set the spawn-to-bulk date to start the colonization timer.</small>` });
       return;
     }
     if (t.current_phase === 2 && elapsed >= 7) {
@@ -1443,7 +1443,7 @@ function renderTubBody() {
             <span class="chip cyan mono">P${ph.n} · ${escapeHtml(ph.short)}</span>
           </div>
           <div class="grid grid-3" style="gap:12px;">
-            <div class="info-card"><div class="info-title">Inoculation</div><div class="kv"><div class="k">Date</div><div class="v">${fmtDate(t.inoculation_date)}</div><div class="k">Age</div><div class="v">${tubAge(t)} days</div></div></div>
+            <div class="info-card"><div class="info-title">Spawn date</div><div class="kv"><div class="k">Date</div><div class="v">${fmtDate(t.inoculation_date)}</div><div class="k">Age</div><div class="v">${tubAge(t)} days</div></div></div>
             <div class="info-card"><div class="info-title">Current Phase</div><div class="kv"><div class="k">Phase</div><div class="v">${ph.n}/6</div><div class="k">Stage</div><div class="v">${escapeHtml(ph.short)}</div></div></div>
             <div class="info-card"><div class="info-title">Yield</div><div class="kv"><div class="k">Wet</div><div class="v">${wet.toFixed(0)} g</div><div class="k">Dry</div><div class="v">${dry.toFixed(0)} g</div></div></div>
           </div>
@@ -1463,7 +1463,7 @@ function renderTubBody() {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M11 19l-7-7 7-7"/></svg>
               Back
             </button>
-            <button class="btn ghost" id="setInocBtn">Set inoculation date</button>
+            <button class="btn ghost" id="setInocBtn">Set spawn date</button>
             <button class="btn ghost" id="addObsBtn">+ Observation</button>
             <button class="btn ghost" id="addHarvestBtn">+ Harvest</button>
             <button class="btn ghost" id="addContamBtn">+ Contam</button>
@@ -1592,17 +1592,17 @@ function advancePhase(tub, delta) {
   }
 }
 
-/* ---------- inoculation date modal ---------- */
+/* ---------- spawn date modal ---------- */
 function openInocModal(t) {
   const cur = t.inoculation_date ? new Date(t.inoculation_date).toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
   openModal({
-    title: `Inoculation date — Tub ${t.tub_number}`,
+    title: `Spawn date — Tub ${t.tub_number}`,
     bodyHtml: `
       <div class="field">
-        <label>Inoculation date</label>
+        <label>Spawn-to-bulk date</label>
         <input type="date" id="inocDate" value="${cur}">
       </div>
-      <p class="muted" style="font-size:12px;">Setting this starts the timer and auto-advances the tub to <b>Phase 2 (Colonization)</b> if it's still in Phase 1.</p>`,
+      <p class="muted" style="font-size:12px;">The day you mixed colonized spawn into the bulk substrate. This starts the colonization timer and auto-advances the tub to <b>Phase 2 (Colonization)</b> if it's still in Phase 1.</p>`,
     footerHtml: `<button class="btn ghost" id="cancelI">Cancel</button><button class="btn primary" id="saveI">Save</button>`,
     onMount: () => {
       $("#cancelI").addEventListener("click", closeModal);
@@ -1618,7 +1618,7 @@ function openInocModal(t) {
           () => { t.inoculation_date = old.inoculation_date; t.current_phase = old.current_phase; }
         );
         if (nextPhase !== old.current_phase) {
-          const entry = { id: uid(), tub_id: t.id, phase_number: nextPhase, entered_at: iso, notes: "Auto: inoculated" };
+          const entry = { id: uid(), tub_id: t.id, phase_number: nextPhase, entered_at: iso, notes: "Auto: spawn-to-bulk" };
           mutate(
             { kind: "insert", table: "phase_log", row: entry },
             () => state.phaseLog.unshift(entry),
@@ -1626,7 +1626,7 @@ function openInocModal(t) {
           );
         }
         closeModal();
-        toast("Inoculation date set", "ok");
+        toast("Spawn date set", "ok");
       });
     }
   });
@@ -1883,7 +1883,7 @@ function renderCalendar() {
       return `
         <div class="cal-row">
           <div class="cal-name">Tub ${t.tub_number}<small>${escapeHtml(t.strain)}</small></div>
-          <div class="cal-track"><div class="cal-seg" style="left:0; right:0; color:var(--text-faint);">no inoculation date set</div></div>
+          <div class="cal-track"><div class="cal-seg" style="left:0; right:0; color:var(--text-faint);">no spawn date set</div></div>
         </div>`;
     }
     const today = new Date();

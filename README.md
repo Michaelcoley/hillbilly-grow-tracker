@@ -15,7 +15,7 @@ No build step. One `index.html`. Open it in a browser. State syncs through Supab
 - **Phase Guide** — six collapsible phases with step-by-step instructions, sandwich tek diagram (1 lb bottom buffer / mixed middle / 1 lb top cap), inventory snapshot (3 grain bags · 8 Boomr Bags · Myco Coco · 2 reserve), Boomr Bin automation hookup diagram (FAE Fan · Myco-Mister · Mycontroller probe), and a fruiting conditions card (74–76°F, 90–95% RH, 12 hr light).
 - **Harvest Log** — log per-flush wet & dry weights and notes, auto-calculated moisture loss %, running totals per tub, and a yield bar chart per flush across all tubs.
 - **Contamination Checker** — quick color reference (green/black/pink = bad, white/blue bruising = normal), 4-question decision tree (isolate vs continue vs terminate vs spot-treat), and a photo-backed event log.
-- **Calendar View** — visual 6-phase timeline per tub with current-position marker and projected pin / harvest / reflush dates based on each tub's inoculation date.
+- **Calendar View** — visual 6-phase timeline per tub with current-position marker and projected pin / harvest / reflush dates based on each tub's spawn-to-bulk date.
 - **Real-time sync** — Supabase Realtime subscriptions on all five tables; another device's update reflects on yours instantly.
 - **Offline support** — writes queue to `localStorage` when offline and flush automatically on reconnect; optimistic UI with rollback on error.
 - **Photos** — uploaded to a public-read Supabase Storage bucket (`grow-photos`); URLs persist in the row.
