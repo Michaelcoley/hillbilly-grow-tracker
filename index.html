@@ -1036,10 +1036,13 @@ async function loadAll() {
   ]);
   const errs = queries.filter(q => q.error);
   if (errs.length) {
-    setSync("error", "Load failed");
-    toast("Load error: " + errs[0].error.message, "err", 5000);
+    const first = errs[0].error;
+    const missingTable = first.code === "PGRST205" || /not find the table|does not exist/i.test(first.message || "");
+    setSync("error", missingTable ? "Run schema.sql" : "Load failed");
+    if (missingTable) showSetupRequired(first.message);
+    else toast("Load error: " + first.message, "err", 5000);
     console.error(errs);
-    return;
+    return false;
   }
   state.tubs        = queries[0].data || [];
   state.phaseLog    = queries[1].data || [];
@@ -1060,6 +1063,27 @@ async function loadAll() {
   setSync("online");
   state.initialized = true;
   renderAll();
+  return true;
+}
+
+function showSetupRequired(detail) {
+  document.querySelector("main").innerHTML = `
+    <div class="panel" style="max-width: 720px; margin: 60px auto;">
+      <div class="panel-h"><h3>Setup Required — run <code>schema.sql</code></h3></div>
+      <p>The Supabase project is reachable but the app's tables don't exist yet. One-time setup:</p>
+      <ol style="line-height: 1.8;">
+        <li>Open your Supabase project → <b>SQL Editor</b> → <b>New query</b>.</li>
+        <li>Paste the entire contents of
+          <a href="https://github.com/Michaelcoley/hillbilly-grow-tracker/blob/main/schema.sql" target="_blank" rel="noopener">schema.sql</a>
+          (also viewable
+          <a href="https://raw.githubusercontent.com/Michaelcoley/hillbilly-grow-tracker/main/schema.sql" target="_blank" rel="noopener">raw here</a>).
+        </li>
+        <li>Click <b>Run</b>. The script creates 5 tables, RLS policies, the realtime publication, the <code>grow-photos</code> storage bucket, and seeds 3 tub rows.</li>
+        <li>Reload this page.</li>
+      </ol>
+      <hr class="hr"/>
+      <div class="muted" style="font-size:12px;">Server reported: <code>${escapeHtml(detail || "unknown error")}</code></div>
+    </div>`;
 }
 
 function subscribeAll() {
@@ -1879,7 +1903,8 @@ async function start() {
   loadQueue();
   if (!initSupabase()) return;
   try {
-    await loadAll();
+    const ok = await loadAll();
+    if (!ok) return;             // tables missing or load failed — banner already shown
     subscribeAll();
     if (state.offlineQueue.length) flushQueue();
   } catch (e) {
