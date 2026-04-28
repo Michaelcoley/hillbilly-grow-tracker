@@ -557,10 +557,17 @@
   /* ---------- diagram ---------- */
   .diagram {
     background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--r-sm);
-    padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px;
-    color: var(--text-dim); line-height: 1.7; overflow-x: auto; white-space: pre;
+    padding: 14px; overflow: hidden;
+    background-image:
+      radial-gradient(circle at 30% 20%, rgba(0,217,255,0.05), transparent 55%),
+      radial-gradient(circle at 80% 80%, rgba(0,184,212,0.04), transparent 50%);
   }
-  .diagram .hi { color: var(--cyan); }
+  .diagram svg { display: block; width: 100%; height: auto; max-width: 520px; margin: 0 auto; }
+  .diagram-cap {
+    text-align: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint);
+    letter-spacing: 1.5px; text-transform: uppercase;
+  }
 
   /* ---------- helpers ---------- */
   .stack > * + * { margin-top: 12px; }
@@ -734,15 +741,107 @@
     <div class="grid grid-2" style="margin-bottom: 18px;">
       <div class="panel">
         <div class="panel-h"><h3>Sandwich Tek Substrate</h3><span class="chip cyan mono">1 : 2 spawn ratio</span></div>
-        <div class="diagram">┌──────────────────────────────┐
-│   <span class="hi">TOP CAP — 1 lb spawn</span>      │  ← seals & inoculates surface
-├──────────────────────────────┤
-│   <span class="hi">MIDDLE — mixed bulk + spawn</span> │  ← main colonization zone
-├──────────────────────────────┤
-│   <span class="hi">BOTTOM BUFFER — 1 lb spawn</span>  │  ← jump-starts from base
-└──────────────────────────────┘
-          <span class="hi">Boomr Bag bulk substrate</span>
-</div>
+        <div class="diagram">
+          <svg viewBox="0 0 420 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sandwich tek substrate cross-section">
+            <defs>
+              <pattern id="sw-spawn" width="10" height="10" patternUnits="userSpaceOnUse">
+                <rect width="10" height="10" fill="#0a141c"/>
+                <ellipse cx="3" cy="4" rx="1.5" ry="1.05" fill="#00d9ff" opacity="0.75"/>
+                <ellipse cx="8" cy="7.5" rx="1.3" ry="0.9" fill="#00b8d4" opacity="0.55"/>
+              </pattern>
+              <pattern id="sw-mixed" width="14" height="14" patternUnits="userSpaceOnUse">
+                <rect width="14" height="14" fill="#0e1820"/>
+                <circle cx="3" cy="3" r="0.6" fill="#5b6478" opacity="0.55"/>
+                <ellipse cx="8" cy="6" rx="1.4" ry="0.95" fill="#00d9ff" opacity="0.55"/>
+                <circle cx="5" cy="10" r="0.5" fill="#3a4252"/>
+                <ellipse cx="11" cy="11" rx="1.2" ry="0.8" fill="#00b8d4" opacity="0.45"/>
+                <circle cx="12" cy="2" r="0.55" fill="#5b6478" opacity="0.5"/>
+              </pattern>
+              <linearGradient id="sw-tubwall" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#1b212d"/>
+                <stop offset="0.5" stop-color="#232a38"/>
+                <stop offset="1" stop-color="#1b212d"/>
+              </linearGradient>
+              <filter id="sw-glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="2"/>
+              </filter>
+            </defs>
+
+            <!-- Tub silhouette: tapered (wider at top) -->
+            <path d="M62 36 L228 36 L222 280 Q220 290 210 290 L80 290 Q70 290 68 280 Z"
+                  fill="url(#sw-tubwall)" stroke="#2c3445" stroke-width="1.2"/>
+            <!-- Inner cavity outline -->
+            <path d="M70 44 L220 44 L214 278 Q213 282 209 282 L81 282 Q77 282 76 278 Z"
+                  fill="#0a0e14" stroke="#0a0e14" stroke-width="1"/>
+
+            <!-- Lid -->
+            <rect x="56" y="22" width="178" height="14" rx="3" fill="#1b212d" stroke="#2c3445" stroke-width="1"/>
+            <rect x="128" y="14" width="34" height="10" rx="3" fill="#232a38" stroke="#2c3445" stroke-width="0.8"/>
+
+            <!-- LAYERS — clipped to tub interior -->
+            <clipPath id="sw-clip">
+              <path d="M70 44 L220 44 L214 278 Q213 282 209 282 L81 282 Q77 282 76 278 Z"/>
+            </clipPath>
+            <g clip-path="url(#sw-clip)">
+              <rect x="68" y="44" width="156" height="48"  fill="url(#sw-spawn)"/>
+              <rect x="68" y="92" width="156" height="142" fill="url(#sw-mixed)"/>
+              <rect x="68" y="234" width="156" height="50" fill="url(#sw-spawn)"/>
+              <!-- separator hairlines -->
+              <line x1="68" y1="92"  x2="224" y2="92"  stroke="#00d9ff" stroke-opacity="0.35" stroke-width="0.6"/>
+              <line x1="68" y1="234" x2="224" y2="234" stroke="#00d9ff" stroke-opacity="0.35" stroke-width="0.6"/>
+            </g>
+
+            <!-- Layer captions inside -->
+            <text x="148" y="64"  text-anchor="middle" fill="#00d9ff" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" letter-spacing="0.6">TOP CAP</text>
+            <text x="148" y="78"  text-anchor="middle" fill="#7be0ff" font-family="'JetBrains Mono', monospace" font-size="9" opacity="0.85">1 lb spawn</text>
+
+            <text x="148" y="156" text-anchor="middle" fill="#d8e0ec" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="700" letter-spacing="0.6">MIDDLE</text>
+            <text x="148" y="172" text-anchor="middle" fill="#8893a7" font-family="'JetBrains Mono', monospace" font-size="9.5">bulk + spawn mixed</text>
+            <text x="148" y="186" text-anchor="middle" fill="#5b6478" font-family="'JetBrains Mono', monospace" font-size="8.5">~50/50 by volume</text>
+
+            <text x="148" y="256" text-anchor="middle" fill="#00d9ff" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="700" letter-spacing="0.6">BOTTOM BUFFER</text>
+            <text x="148" y="270" text-anchor="middle" fill="#7be0ff" font-family="'JetBrains Mono', monospace" font-size="9" opacity="0.85">1 lb spawn</text>
+
+            <!-- RIGHT-SIDE ANNOTATIONS with leader lines -->
+            <g font-family="Inter, system-ui, sans-serif">
+              <line x1="222" y1="68" x2="252" y2="68" stroke="#00d9ff" stroke-width="0.9"/>
+              <circle cx="252" cy="68" r="2.5" fill="#00d9ff"/>
+              <text x="260" y="64" fill="#00d9ff" font-size="11.5" font-weight="600">Seals surface</text>
+              <text x="260" y="77" fill="#8893a7" font-size="10">inoculates downward</text>
+
+              <line x1="222" y1="158" x2="252" y2="158" stroke="#5be29a" stroke-width="0.9"/>
+              <circle cx="252" cy="158" r="2.5" fill="#5be29a"/>
+              <text x="260" y="154" fill="#5be29a" font-size="11.5" font-weight="600">Colonization zone</text>
+              <text x="260" y="167" fill="#8893a7" font-size="10">myc spreads outward</text>
+
+              <line x1="222" y1="252" x2="252" y2="252" stroke="#00d9ff" stroke-width="0.9"/>
+              <circle cx="252" cy="252" r="2.5" fill="#00d9ff"/>
+              <text x="260" y="248" fill="#00d9ff" font-size="11.5" font-weight="600">Jump-start base</text>
+              <text x="260" y="261" fill="#8893a7" font-size="10">prevents stalling</text>
+            </g>
+
+            <!-- LEFT dimension lines -->
+            <g stroke="#3a4252" stroke-width="0.7" fill="none">
+              <line x1="46" y1="44"  x2="46" y2="92"/>
+              <line x1="42" y1="44"  x2="50" y2="44"/>
+              <line x1="42" y1="92"  x2="50" y2="92"/>
+              <line x1="46" y1="92"  x2="46" y2="234"/>
+              <line x1="42" y1="234" x2="50" y2="234"/>
+              <line x1="46" y1="234" x2="46" y2="282"/>
+              <line x1="42" y1="282" x2="50" y2="282"/>
+            </g>
+            <text x="40" y="71"  text-anchor="end" fill="#5b6478" font-family="'JetBrains Mono',monospace" font-size="8.5">~1"</text>
+            <text x="40" y="166" text-anchor="end" fill="#5b6478" font-family="'JetBrains Mono',monospace" font-size="8.5">~3"</text>
+            <text x="40" y="261" text-anchor="end" fill="#5b6478" font-family="'JetBrains Mono',monospace" font-size="8.5">~1"</text>
+
+            <!-- Spawn ratio badge -->
+            <g transform="translate(330, 290)">
+              <rect x="-44" y="-14" width="88" height="22" rx="11" fill="rgba(0,217,255,0.08)" stroke="#00d9ff" stroke-opacity="0.4"/>
+              <text x="0" y="2" text-anchor="middle" fill="#00d9ff" font-family="'JetBrains Mono',monospace" font-size="10" font-weight="600">1 : 2 spawn</text>
+            </g>
+          </svg>
+          <div class="diagram-cap">Side cross-section · sandwich tek</div>
+        </div>
       </div>
 
       <div class="panel">
@@ -762,20 +861,151 @@
 
     <div class="panel" style="margin-bottom: 18px;">
       <div class="panel-h"><h3>Boomr Bin Automation Hookup</h3><span class="chip cyan mono">FAE · Mister · Probe</span></div>
-      <div class="diagram">                   ┌─────────────────────────┐
-                   │     <span class="hi">Mycontroller</span>        │
-                   │   (humidity + temp)     │
-                   └────┬────────┬───────┬───┘
-                        │        │       │
-              ┌─────────┘        │       └────────────┐
-              ▼                  ▼                    ▼
-        <span class="hi">FAE FAN</span>             <span class="hi">PROBE</span>             <span class="hi">MYCO-MISTER</span>
-   (fresh air exchange)   (in-bin sensor)     (humidity boost)
-        relay 1               sensor in           relay 2
-              │                  │                    │
-              └──────────────►  <span class="hi">BOOMR BIN</span>  ◄────────────┘
-                              74–76°F · 90–95% RH · 12 hr light
-</div>
+      <div class="diagram">
+        <svg viewBox="0 0 520 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Boomr Bin automation hookup diagram">
+          <defs>
+            <linearGradient id="bb-node" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#1b212d"/>
+              <stop offset="1" stop-color="#151a23"/>
+            </linearGradient>
+            <linearGradient id="bb-bin" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#0e1f2a"/>
+              <stop offset="1" stop-color="#08161e"/>
+            </linearGradient>
+            <linearGradient id="bb-ctrl" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#152938"/>
+              <stop offset="1" stop-color="#0d1c28"/>
+            </linearGradient>
+            <marker id="bb-arrow" markerWidth="8" markerHeight="8" refX="6.5" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 L2,4 Z" fill="#00d9ff"/>
+            </marker>
+            <filter id="bb-shadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.4"/>
+            </filter>
+          </defs>
+
+          <!-- ===== CONTROLLER (top) ===== -->
+          <g transform="translate(180, 20)" filter="url(#bb-shadow)">
+            <rect width="160" height="68" rx="10" fill="url(#bb-ctrl)" stroke="#00d9ff" stroke-width="1.6"/>
+            <!-- chip icon -->
+            <g transform="translate(14, 18)" stroke="#00d9ff" stroke-width="1.4" stroke-linecap="round" fill="none">
+              <rect x="2" y="2" width="28" height="28" rx="3"/>
+              <line x1="9"  y1="2"  x2="9"  y2="-2"/>
+              <line x1="16" y1="2"  x2="16" y2="-2"/>
+              <line x1="23" y1="2"  x2="23" y2="-2"/>
+              <line x1="9"  y1="30" x2="9"  y2="34"/>
+              <line x1="16" y1="30" x2="16" y2="34"/>
+              <line x1="23" y1="30" x2="23" y2="34"/>
+              <rect x="9" y="9" width="14" height="14" rx="1.5"/>
+              <circle cx="16" cy="16" r="2.5" fill="#00d9ff" stroke="none"/>
+            </g>
+            <text x="56" y="30" fill="#d8e0ec" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" letter-spacing="0.4">MYCONTROLLER</text>
+            <text x="56" y="48" fill="#8893a7" font-family="'JetBrains Mono', monospace" font-size="10">humidity + temp</text>
+            <!-- Status LED -->
+            <circle cx="148" cy="14" r="3" fill="#5be29a"/>
+            <circle cx="148" cy="14" r="3" fill="#5be29a" opacity="0.4">
+              <animate attributeName="r" values="3;6;3" dur="2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" repeatCount="indefinite"/>
+            </circle>
+          </g>
+
+          <!-- ===== Tier 1 connectors: controller -> devices ===== -->
+          <g fill="none" stroke="#00d9ff" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.7">
+            <path d="M210 88 L210 116 L80  116 L80  150"/>
+            <path d="M260 88 L260 150"/>
+            <path d="M310 88 L310 116 L440 116 L440 150"/>
+          </g>
+          <g font-family="'JetBrains Mono', monospace" font-size="9" fill="#5b6478" letter-spacing="1">
+            <text x="100" y="111">RELAY 1</text>
+            <text x="266" y="106">SENSOR IN</text>
+            <text x="420" y="111" text-anchor="end">RELAY 2</text>
+          </g>
+
+          <!-- ===== DEVICE: FAE Fan (left) ===== -->
+          <g transform="translate(30, 150)" filter="url(#bb-shadow)">
+            <rect width="100" height="76" rx="8" fill="url(#bb-node)" stroke="#2c3445" stroke-width="1"/>
+            <rect x="0" y="0" width="100" height="3" rx="1.5" fill="#00d9ff" opacity="0.6"/>
+            <!-- fan icon -->
+            <g transform="translate(50, 30)" fill="none" stroke="#00d9ff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+              <circle r="3" fill="#00d9ff" stroke="none"/>
+              <path d="M0,-3 C-7,-13 -13,-7 -3,0"/>
+              <path d="M3,0 C13,-7 7,-13 0,-3"/>
+              <path d="M0,3 C7,13 13,7 3,0"/>
+              <path d="M-3,0 C-13,7 -7,13 0,3"/>
+            </g>
+            <text x="50" y="60" text-anchor="middle" fill="#d8e0ec" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600">FAE Fan</text>
+            <text x="50" y="71" text-anchor="middle" fill="#8893a7" font-family="'JetBrains Mono',monospace" font-size="8">fresh air</text>
+          </g>
+
+          <!-- ===== DEVICE: Probe (center) ===== -->
+          <g transform="translate(210, 150)" filter="url(#bb-shadow)">
+            <rect width="100" height="76" rx="8" fill="url(#bb-node)" stroke="#2c3445" stroke-width="1"/>
+            <rect x="0" y="0" width="100" height="3" rx="1.5" fill="#00d9ff" opacity="0.6"/>
+            <!-- probe icon: thermometer -->
+            <g transform="translate(50, 30)" fill="none" stroke="#00d9ff" stroke-width="1.4" stroke-linecap="round">
+              <rect x="-2.5" y="-12" width="5" height="18" rx="2.5"/>
+              <circle cx="0" cy="8" r="4" fill="#00d9ff" stroke="none"/>
+              <line x1="4" y1="-8" x2="7" y2="-8"/>
+              <line x1="4" y1="-4" x2="7" y2="-4"/>
+              <line x1="4" y1="0"  x2="7" y2="0"/>
+            </g>
+            <text x="50" y="60" text-anchor="middle" fill="#d8e0ec" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600">Probe</text>
+            <text x="50" y="71" text-anchor="middle" fill="#8893a7" font-family="'JetBrains Mono',monospace" font-size="8">in-bin sensor</text>
+          </g>
+
+          <!-- ===== DEVICE: Myco-Mister (right) ===== -->
+          <g transform="translate(390, 150)" filter="url(#bb-shadow)">
+            <rect width="100" height="76" rx="8" fill="url(#bb-node)" stroke="#2c3445" stroke-width="1"/>
+            <rect x="0" y="0" width="100" height="3" rx="1.5" fill="#00d9ff" opacity="0.6"/>
+            <!-- mister icon: cloud + drops -->
+            <g transform="translate(50, 28)" fill="none" stroke="#00d9ff" stroke-width="1.4" stroke-linejoin="round">
+              <path d="M-12,2 Q-14,-3 -8,-5 Q-7,-11 -1,-9 Q3,-12 8,-7 Q14,-7 12,1 Q14,5 7,5 L-7,5 Q-12,5 -12,2 Z"/>
+              <line x1="-5" y1="9"  x2="-7" y2="14" stroke-linecap="round"/>
+              <line x1="0"  y1="9"  x2="-1" y2="15" stroke-linecap="round"/>
+              <line x1="5"  y1="9"  x2="7"  y2="14" stroke-linecap="round"/>
+            </g>
+            <text x="50" y="60" text-anchor="middle" fill="#d8e0ec" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600">Myco-Mister</text>
+            <text x="50" y="71" text-anchor="middle" fill="#8893a7" font-family="'JetBrains Mono',monospace" font-size="8">humidity boost</text>
+          </g>
+
+          <!-- ===== Tier 2 connectors: devices -> bin ===== -->
+          <g fill="none" stroke="#00d9ff" stroke-width="1.6" opacity="0.85">
+            <path d="M80  226 L80  254 L210 254 L210 274" marker-end="url(#bb-arrow)"/>
+            <path d="M260 226 L260 274" marker-end="url(#bb-arrow)"/>
+            <path d="M440 226 L440 254 L310 254 L310 274" marker-end="url(#bb-arrow)"/>
+          </g>
+
+          <!-- ===== BOOMR BIN (bottom) ===== -->
+          <g transform="translate(110, 280)" filter="url(#bb-shadow)">
+            <rect width="300" height="86" rx="12" fill="url(#bb-bin)" stroke="#00d9ff" stroke-width="1.6"/>
+            <!-- mushroom icon -->
+            <g transform="translate(28, 24)">
+              <ellipse cx="0" cy="0" rx="18" ry="11" fill="#00d9ff" opacity="0.9"/>
+              <path d="M-3 8 L-3 22 Q-3 26 0 26 Q3 26 3 22 L3 8 Z" fill="#00d9ff"/>
+              <ellipse cx="-7" cy="-3" rx="3" ry="2" fill="#7be0ff" opacity="0.7"/>
+              <ellipse cx="6"  cy="-1" rx="2.5" ry="1.6" fill="#7be0ff" opacity="0.6"/>
+            </g>
+            <text x="60" y="34" fill="#d8e0ec" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" letter-spacing="0.5">BOOMR BIN</text>
+            <text x="60" y="50" fill="#8893a7" font-family="'JetBrains Mono', monospace" font-size="10">fruiting chamber</text>
+            <!-- Conditions chips -->
+            <g font-family="'JetBrains Mono', monospace" font-size="10" font-weight="600">
+              <g transform="translate(168, 22)">
+                <rect width="120" height="18" rx="9" fill="rgba(0,217,255,0.08)" stroke="#00d9ff" stroke-opacity="0.4"/>
+                <text x="60" y="13" text-anchor="middle" fill="#00d9ff">74–76°F</text>
+              </g>
+              <g transform="translate(168, 44)">
+                <rect width="120" height="18" rx="9" fill="rgba(0,217,255,0.08)" stroke="#00d9ff" stroke-opacity="0.4"/>
+                <text x="60" y="13" text-anchor="middle" fill="#00d9ff">90–95% RH</text>
+              </g>
+              <g transform="translate(168, 64)">
+                <rect width="120" height="16" rx="8" fill="rgba(0,217,255,0.06)" stroke="#00d9ff" stroke-opacity="0.3"/>
+                <text x="60" y="12" text-anchor="middle" fill="#7be0ff">12 hr light</text>
+              </g>
+            </g>
+          </g>
+        </svg>
+        <div class="diagram-cap">Mycontroller · two relays · one probe</div>
+      </div>
     </div>
 
     <div id="phaseAccordion"></div>
