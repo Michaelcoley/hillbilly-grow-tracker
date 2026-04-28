@@ -96,6 +96,19 @@
     0%,100% { transform: scale(1); opacity: 1; }
     50%     { transform: scale(1.4); opacity: 0.55; }
   }
+  @media (max-width: 480px) {
+    .topbar-inner { padding: 11px 12px; gap: 8px; }
+    .brand-mark { width: 30px; height: 30px; }
+    .brand-mark svg { width: 19px; height: 19px; }
+    .brand-title { font-size: 13px; }
+    .brand-sub { font-size: 9.5px; letter-spacing: 1.2px; }
+    .sync-pill { padding: 5px 9px; font-size: 11px; gap: 6px; }
+  }
+  @media (max-width: 360px) {
+    .brand-sub { display: none; }
+    .sync-pill #syncLabel { display: none; }
+    .sync-pill { padding: 6px; }
+  }
 
   /* ---------- nav tabs ---------- */
   nav.tabs {
@@ -143,12 +156,14 @@
   .panel:hover { border-color: var(--line-2); }
   .panel-h {
     display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 14px;
+    gap: 10px; margin-bottom: 14px; flex-wrap: wrap;
   }
   .panel-h h3 {
     margin: 0; font-size: 13px; font-weight: 600;
     color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.4px;
+    min-width: 0;
   }
+  .panel-h .chip { max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .grid { display: grid; gap: 14px; }
   .grid-3 { grid-template-columns: repeat(3, 1fr); }
   .grid-2 { grid-template-columns: repeat(2, 1fr); }
@@ -162,6 +177,10 @@
     main { padding: 14px 12px 80px; }
     .panel { padding: 14px; }
   }
+
+  /* responsive 2-1 split — collapses on tablet and below */
+  .split-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
+  @media (max-width: 980px) { .split-2-1 { grid-template-columns: 1fr; } }
 
   /* ---------- tub status card ---------- */
   .tub-card {
@@ -188,24 +207,32 @@
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 10px;
   }
-  .tub-name { font-weight: 700; font-size: 16px; letter-spacing: 0.2px; }
+  .tub-name { font-weight: 700; font-size: 16px; letter-spacing: 0.2px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .tub-no {
     font-family: 'JetBrains Mono', monospace; font-size: 11px;
     background: rgba(0,217,255,0.08); color: var(--cyan);
     padding: 3px 8px; border-radius: 999px;
     border: 1px solid rgba(0,217,255,0.3);
+    flex-shrink: 0;
   }
   .tub-phase-row {
-    display: flex; align-items: baseline; gap: 8px; margin-top: 4px;
+    display: flex; align-items: baseline; gap: 8px; margin-top: 4px; flex-wrap: wrap;
   }
   .tub-phase-name { font-size: 14px; font-weight: 600; color: var(--text); }
   .tub-phase-num  { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); }
   .tub-meta {
-    display: flex; gap: 14px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);
   }
-  .tub-meta div { flex: 1; }
-  .tub-meta .k { font-size: 10px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 1.2px; }
-  .tub-meta .v { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text); margin-top: 3px; }
+  .tub-meta > div { min-width: 0; }
+  .tub-meta .k { font-size: 10px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 1.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tub-meta .v { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tub-cta {
+    margin-top: 12px; padding: 9px 12px; border-radius: var(--r-sm);
+    background: rgba(0,217,255,0.07); border: 1px dashed rgba(0,217,255,0.4);
+    color: var(--cyan); font-size: 12px; font-weight: 600;
+    text-align: center; letter-spacing: 0.3px;
+  }
   .tub-progress { margin-top: 12px; }
   .progress-track { height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; }
   .progress-fill { height: 100%; background: linear-gradient(90deg, var(--cyan-2), var(--cyan)); transition: width .35s ease; }
@@ -258,10 +285,14 @@
     background: radial-gradient(circle, var(--cyan-glow), transparent 60%);
     pointer-events: none;
   }
-  .stat .label { font-size: 11px; color: var(--text-faint); letter-spacing: 1.4px; text-transform: uppercase; }
+  .stat .label { font-size: 11px; color: var(--text-faint); letter-spacing: 1.4px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .stat .value { font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 600; color: var(--text); margin-top: 6px; }
   .stat .unit  { font-size: 12px; color: var(--text-dim); margin-left: 4px; }
-  .stat .hint  { font-size: 11px; color: var(--text-dim); margin-top: 6px; }
+  .stat .hint  { font-size: 11px; color: var(--text-dim); margin-top: 6px; line-height: 1.35; }
+  @media (max-width: 600px) {
+    .stat { padding: 14px; }
+    .stat .value { font-size: 22px; }
+  }
 
   /* ---------- alerts ---------- */
   .alerts { display: flex; flex-direction: column; gap: 8px; }
@@ -414,9 +445,9 @@
   .swatch .desc { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
 
   /* ---------- yield chart ---------- */
-  .chart-wrap { padding: 4px 0 0; }
-  .bars { display: flex; align-items: flex-end; gap: 8px; height: 180px; padding: 8px 4px 0; border-bottom: 1px solid var(--line); }
-  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .chart-wrap { padding: 4px 0 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .bars { display: flex; align-items: flex-end; gap: 8px; height: 180px; padding: 8px 4px 0; border-bottom: 1px solid var(--line); min-width: 100%; }
+  .bar-col { flex: 1 0 36px; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 36px; }
   .bar {
     width: 100%; max-width: 56px;
     background: linear-gradient(180deg, var(--cyan), var(--cyan-2));
@@ -424,19 +455,25 @@
     box-shadow: 0 0 14px rgba(0,217,255,0.18);
     transition: height .35s ease;
   }
-  .bar-label { font-size: 10px; color: var(--text-faint); font-family: 'JetBrains Mono', monospace; }
-  .bar-value { font-size: 10px; color: var(--text); font-family: 'JetBrains Mono', monospace; }
+  .bar-label { font-size: 10px; color: var(--text-faint); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+  .bar-value { font-size: 10px; color: var(--text); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
 
   /* ---------- calendar ---------- */
   .cal-row {
     display: grid; grid-template-columns: 90px 1fr; gap: 10px; align-items: center;
     margin-bottom: 14px;
   }
-  .cal-name { font-weight: 600; font-size: 13px; }
-  .cal-name small { display: block; color: var(--text-faint); font-size: 11px; font-weight: 400; }
+  .cal-name { font-weight: 600; font-size: 13px; min-width: 0; }
+  .cal-name small { display: block; color: var(--text-faint); font-size: 11px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .cal-track {
     position: relative; height: 38px;
     background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--r-sm); overflow: hidden;
+  }
+  @media (max-width: 600px) {
+    .cal-row { grid-template-columns: 70px 1fr; gap: 8px; }
+    .cal-axis { grid-template-columns: 70px 1fr; gap: 8px; }
+    .cal-name { font-size: 12px; }
+    .cal-seg { font-size: 9px; }
   }
   .cal-seg {
     position: absolute; top: 0; bottom: 0;
@@ -603,7 +640,7 @@
 
     <div class="grid grid-3" id="tubCards" style="margin-bottom: 18px;"></div>
 
-    <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 18px; margin-bottom: 18px;" id="dashSplit">
+    <div class="split-2-1" style="margin-bottom: 18px;" id="dashSplit">
       <div class="panel">
         <div class="panel-h">
           <h3>Master Phase Timeline</h3>
@@ -1283,11 +1320,13 @@ function renderDashboard() {
             <div class="progress-track"><div class="progress-fill" style="width: ${pct}%;"></div></div>
             <div class="progress-label"><span>${escapeHtml(t.strain || "Hillbilly")}</span><span>${pct}%</span></div>
           </div>
+          ${t.inoculation_date ? `
           <div class="tub-meta">
             <div><div class="k">Age</div><div class="v">${age}d</div></div>
             <div><div class="k">Inoc</div><div class="v">${fmtDate(t.inoculation_date)}</div></div>
             <div><div class="k">${escapeHtml(ms.label)}</div><div class="v">${ms.days === null ? "—" : (ms.days >= 0 ? `${ms.days}d` : `+${-ms.days}d`)}</div></div>
-          </div>
+          </div>` : `
+          <div class="tub-cta">Tap to set inoculation date →</div>`}
         </div>
       </div>`;
   }).join("");
@@ -1305,7 +1344,7 @@ function renderDashboard() {
       <div class="ph-num mono">P${p.n}</div>
       <div class="ph-name">${escapeHtml(p.short)}</div>
     </div>`).join("");
-  $("#timelinePosLabel").textContent = `Leading: P${leading} · ${phaseObj(leading).name}`;
+  $("#timelinePosLabel").textContent = `P${leading} · ${phaseObj(leading).short}`;
 
   // stats
   const flushes = state.harvests.length;
@@ -1396,7 +1435,7 @@ function renderTubBody() {
   const wet = sumWet(harv), dry = sumDry(harv);
 
   $("#tubBody").innerHTML = `
-    <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 18px;">
+    <div class="split-2-1">
       <div class="stack">
         <div class="panel">
           <div class="panel-h">
