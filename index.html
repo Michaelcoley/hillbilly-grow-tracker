@@ -1,0 +1,1894 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0e14" />
+<title>Hillbilly Monotub Grow Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e14;
+    --bg-2: #0d131c;
+    --panel: #151a23;
+    --panel-2: #1b212d;
+    --line: #232a38;
+    --line-2: #2c3445;
+    --text: #d8e0ec;
+    --text-dim: #8893a7;
+    --text-faint: #5b6478;
+    --cyan: #00d9ff;
+    --cyan-2: #00b8d4;
+    --cyan-glow: rgba(0, 217, 255, 0.18);
+    --cyan-soft: rgba(0, 217, 255, 0.08);
+    --amber: #ffb84d;
+    --green: #5be29a;
+    --red: #ff5d6c;
+    --pink: #ff7ab6;
+    --shadow: 0 10px 30px rgba(0,0,0,0.45);
+    --r: 12px;
+    --r-sm: 8px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(1100px 600px at 85% -10%, rgba(0,184,212,0.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(0,217,255,0.08), transparent 60%),
+      var(--bg);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  a { color: var(--cyan); text-decoration: none; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+
+  /* ---------- top bar ---------- */
+  header.topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: linear-gradient(180deg, rgba(10,14,20,0.95), rgba(10,14,20,0.78) 70%, rgba(10,14,20,0));
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner {
+    max-width: 1280px; margin: 0 auto;
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .brand-mark {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--cyan), var(--cyan-2));
+    display: grid; place-items: center;
+    box-shadow: 0 0 20px var(--cyan-glow);
+    flex-shrink: 0;
+  }
+  .brand-mark svg { width: 22px; height: 22px; color: #062029; }
+  .brand-text { line-height: 1.05; min-width: 0; }
+  .brand-title { font-weight: 800; letter-spacing: 0.3px; font-size: 15px; white-space: nowrap; }
+  .brand-sub { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 1.6px; }
+  .topbar-spacer { flex: 1; }
+  .sync-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px; border-radius: 999px;
+    background: var(--panel); border: 1px solid var(--line-2);
+    font-size: 12px; color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .sync-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text-faint);
+    box-shadow: 0 0 0 0 rgba(0,217,255,0);
+    transition: all .25s ease;
+  }
+  .sync-pill[data-status="online"]   .sync-dot { background: var(--green); box-shadow: 0 0 12px rgba(91,226,154,0.6); }
+  .sync-pill[data-status="syncing"]  .sync-dot { background: var(--cyan);  box-shadow: 0 0 12px var(--cyan-glow); animation: pulse 1.4s ease-in-out infinite; }
+  .sync-pill[data-status="offline"]  .sync-dot { background: var(--red);   box-shadow: 0 0 12px rgba(255,93,108,0.6); }
+  .sync-pill[data-status="error"]    .sync-dot { background: var(--amber); box-shadow: 0 0 12px rgba(255,184,77,0.6); }
+  @keyframes pulse {
+    0%,100% { transform: scale(1); opacity: 1; }
+    50%     { transform: scale(1.4); opacity: 0.55; }
+  }
+
+  /* ---------- nav tabs ---------- */
+  nav.tabs {
+    max-width: 1280px; margin: 0 auto;
+    display: flex; gap: 4px; padding: 0 12px 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav.tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    background: transparent; border: 1px solid transparent;
+    color: var(--text-dim); padding: 9px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 500; white-space: nowrap;
+    transition: all .18s ease;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .tab:hover { color: var(--text); background: var(--panel); }
+  .tab.active {
+    color: var(--cyan); background: var(--cyan-soft);
+    border-color: rgba(0,217,255,0.35);
+    box-shadow: 0 0 18px rgba(0,217,255,0.12);
+  }
+  .tab svg { width: 15px; height: 15px; }
+
+  /* ---------- main ---------- */
+  main { max-width: 1280px; margin: 0 auto; padding: 18px 18px 80px; }
+  .view { display: none; animation: fadeIn .25s ease; }
+  .view.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: none; } }
+
+  h1.view-title {
+    font-size: 22px; font-weight: 700; margin: 4px 0 4px;
+    letter-spacing: 0.2px;
+  }
+  .view-sub { color: var(--text-dim); font-size: 13px; margin-bottom: 18px; }
+
+  /* ---------- panels & cards ---------- */
+  .panel {
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 18px;
+    transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+  }
+  .panel:hover { border-color: var(--line-2); }
+  .panel-h {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .panel-h h3 {
+    margin: 0; font-size: 13px; font-weight: 600;
+    color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.4px;
+  }
+  .grid { display: grid; gap: 14px; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 900px) {
+    .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    main { padding: 14px 12px 80px; }
+    .panel { padding: 14px; }
+  }
+
+  /* ---------- tub status card ---------- */
+  .tub-card {
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: 0; overflow: hidden;
+    transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+    cursor: pointer;
+    position: relative;
+  }
+  .tub-card:hover {
+    border-color: rgba(0,217,255,0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,217,255,0.08);
+  }
+  .tub-strip {
+    height: 4px; background: linear-gradient(90deg, var(--cyan), var(--cyan-2));
+    opacity: 0.55;
+  }
+  .tub-card[data-phase="6"] .tub-strip { background: linear-gradient(90deg, var(--green), var(--cyan)); opacity: 0.8; }
+  .tub-body { padding: 16px; }
+  .tub-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .tub-name { font-weight: 700; font-size: 16px; letter-spacing: 0.2px; }
+  .tub-no {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: rgba(0,217,255,0.08); color: var(--cyan);
+    padding: 3px 8px; border-radius: 999px;
+    border: 1px solid rgba(0,217,255,0.3);
+  }
+  .tub-phase-row {
+    display: flex; align-items: baseline; gap: 8px; margin-top: 4px;
+  }
+  .tub-phase-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .tub-phase-num  { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); }
+  .tub-meta {
+    display: flex; gap: 14px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);
+  }
+  .tub-meta div { flex: 1; }
+  .tub-meta .k { font-size: 10px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 1.2px; }
+  .tub-meta .v { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text); margin-top: 3px; }
+  .tub-progress { margin-top: 12px; }
+  .progress-track { height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--cyan-2), var(--cyan)); transition: width .35s ease; }
+  .progress-label {
+    margin-top: 6px; font-size: 11px; color: var(--text-dim);
+    display: flex; justify-content: space-between;
+  }
+
+  /* ---------- master timeline ---------- */
+  .timeline {
+    display: grid; grid-template-columns: repeat(6, 1fr);
+    gap: 6px; margin-top: 8px;
+  }
+  .timeline-step {
+    background: var(--bg-2); border: 1px solid var(--line);
+    border-radius: var(--r-sm); padding: 12px 10px;
+    text-align: center; position: relative;
+    transition: all .2s ease;
+  }
+  .timeline-step .ph-num {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--text-faint); letter-spacing: 1px;
+  }
+  .timeline-step .ph-name { font-size: 12px; font-weight: 600; margin-top: 4px; color: var(--text-dim); line-height: 1.3; }
+  .timeline-step.done {
+    border-color: rgba(91,226,154,0.4);
+    background: rgba(91,226,154,0.06);
+  }
+  .timeline-step.done .ph-name { color: var(--green); }
+  .timeline-step.current {
+    border-color: var(--cyan);
+    background: var(--cyan-soft);
+    box-shadow: 0 0 18px var(--cyan-glow);
+  }
+  .timeline-step.current .ph-name { color: var(--cyan); }
+  .timeline-step.current .ph-num  { color: var(--cyan); }
+  @media (max-width: 700px) {
+    .timeline { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  /* ---------- stat block ---------- */
+  .stat {
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--line); border-radius: var(--r);
+    padding: 16px; position: relative; overflow: hidden;
+  }
+  .stat::after {
+    content: ""; position: absolute; right: -20px; top: -20px;
+    width: 90px; height: 90px; border-radius: 50%;
+    background: radial-gradient(circle, var(--cyan-glow), transparent 60%);
+    pointer-events: none;
+  }
+  .stat .label { font-size: 11px; color: var(--text-faint); letter-spacing: 1.4px; text-transform: uppercase; }
+  .stat .value { font-family: 'JetBrains Mono', monospace; font-size: 26px; font-weight: 600; color: var(--text); margin-top: 6px; }
+  .stat .unit  { font-size: 12px; color: var(--text-dim); margin-left: 4px; }
+  .stat .hint  { font-size: 11px; color: var(--text-dim); margin-top: 6px; }
+
+  /* ---------- alerts ---------- */
+  .alerts { display: flex; flex-direction: column; gap: 8px; }
+  .alert {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: var(--r-sm);
+    background: var(--bg-2); border: 1px solid var(--line);
+    font-size: 13px;
+  }
+  .alert.info    { border-color: rgba(0,217,255,0.35);  background: rgba(0,217,255,0.05); }
+  .alert.warn    { border-color: rgba(255,184,77,0.4);  background: rgba(255,184,77,0.05); }
+  .alert.danger  { border-color: rgba(255,93,108,0.45); background: rgba(255,93,108,0.05); }
+  .alert.ok      { border-color: rgba(91,226,154,0.4);  background: rgba(91,226,154,0.05); }
+  .alert .dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    background: var(--cyan); box-shadow: 0 0 10px currentColor;
+  }
+  .alert.info .dot { color: var(--cyan); background: var(--cyan); }
+  .alert.warn .dot { color: var(--amber); background: var(--amber); }
+  .alert.danger .dot { color: var(--red); background: var(--red); }
+  .alert.ok .dot { color: var(--green); background: var(--green); }
+  .alert .body { flex: 1; line-height: 1.4; }
+  .alert .body b { color: var(--text); font-weight: 600; }
+  .alert .body small { display: block; color: var(--text-dim); margin-top: 2px; font-size: 11px; }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--panel); border: 1px solid var(--line-2);
+    color: var(--text); padding: 9px 14px; border-radius: var(--r-sm);
+    font-size: 13px; font-weight: 500; transition: all .15s ease;
+  }
+  .btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--cyan), var(--cyan-2));
+    border-color: transparent; color: #062029; font-weight: 600;
+    box-shadow: 0 0 18px var(--cyan-glow);
+  }
+  .btn.primary:hover { color: #062029; transform: translateY(-1px); box-shadow: 0 6px 24px var(--cyan-glow); }
+  .btn.ghost { background: transparent; border-color: var(--line); }
+  .btn.danger { color: var(--red); border-color: rgba(255,93,108,0.35); }
+  .btn.danger:hover { background: rgba(255,93,108,0.08); color: var(--red); }
+  .btn.sm { padding: 6px 10px; font-size: 12px; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn svg { width: 14px; height: 14px; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ---------- inputs ---------- */
+  input, select, textarea {
+    background: var(--bg-2); border: 1px solid var(--line-2);
+    color: var(--text); padding: 9px 12px; border-radius: var(--r-sm);
+    font: inherit; font-size: 13px; width: 100%;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--cyan);
+    box-shadow: 0 0 0 3px var(--cyan-soft);
+  }
+  textarea { min-height: 80px; resize: vertical; font-family: inherit; }
+  label { font-size: 12px; color: var(--text-dim); display: block; margin-bottom: 6px; letter-spacing: 0.2px; }
+  .field { margin-bottom: 12px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 600px) { .field-row { grid-template-columns: 1fr; } }
+
+  /* ---------- list rows ---------- */
+  .row {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 11px 0; border-bottom: 1px solid var(--line);
+  }
+  .row:last-child { border-bottom: none; }
+  .row .ts { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); flex-shrink: 0; min-width: 78px; }
+  .row .text { flex: 1; font-size: 13px; line-height: 1.45; }
+  .row .photo { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--line-2); }
+  .row .actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+  /* ---------- phase guide accordion ---------- */
+  .accordion-item {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--r); margin-bottom: 10px; overflow: hidden;
+    transition: border-color .2s ease;
+  }
+  .accordion-item.open { border-color: rgba(0,217,255,0.45); }
+  .accordion-head {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; cursor: pointer;
+    user-select: none;
+  }
+  .accordion-head:hover { background: rgba(0,217,255,0.04); }
+  .ph-badge {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--bg-2); border: 1px solid var(--line-2);
+    display: grid; place-items: center; flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace; font-weight: 700;
+    color: var(--cyan); font-size: 14px;
+  }
+  .accordion-item.open .ph-badge { background: var(--cyan-soft); border-color: var(--cyan); box-shadow: 0 0 14px var(--cyan-glow); }
+  .accordion-title { flex: 1; font-weight: 600; font-size: 15px; }
+  .accordion-meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; font-weight: 400; }
+  .accordion-chev {
+    width: 18px; height: 18px; color: var(--text-dim);
+    transition: transform .2s ease;
+  }
+  .accordion-item.open .accordion-chev { transform: rotate(180deg); color: var(--cyan); }
+  .accordion-body {
+    display: none; padding: 0 16px 16px 16px;
+    color: var(--text); font-size: 13px; line-height: 1.6;
+  }
+  .accordion-item.open .accordion-body { display: block; }
+  .accordion-body ol, .accordion-body ul { padding-left: 22px; margin: 0 0 12px; }
+  .accordion-body li { margin-bottom: 6px; }
+  .accordion-body h4 { margin: 14px 0 6px; font-size: 12px; color: var(--cyan); text-transform: uppercase; letter-spacing: 1.2px; }
+
+  /* ---------- info card ---------- */
+  .info-card {
+    background: var(--bg-2); border: 1px solid var(--line);
+    border-radius: var(--r-sm); padding: 14px;
+  }
+  .info-card .info-title {
+    font-size: 11px; color: var(--cyan); text-transform: uppercase; letter-spacing: 1.4px;
+    margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; font-size: 13px; }
+  .kv .k { color: var(--text-dim); }
+  .kv .v { font-family: 'JetBrains Mono', monospace; color: var(--text); text-align: right; }
+
+  /* ---------- chips ---------- */
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 999px;
+    background: var(--bg-2); border: 1px solid var(--line-2);
+    font-size: 11px; color: var(--text-dim);
+  }
+  .chip.cyan { color: var(--cyan); border-color: rgba(0,217,255,0.35); background: var(--cyan-soft); }
+  .chip.green{ color: var(--green); border-color: rgba(91,226,154,0.35); background: rgba(91,226,154,0.06); }
+  .chip.red  { color: var(--red); border-color: rgba(255,93,108,0.35); background: rgba(255,93,108,0.06); }
+  .chip.amber{ color: var(--amber); border-color: rgba(255,184,77,0.35); background: rgba(255,184,77,0.06); }
+
+  /* ---------- contam swatches ---------- */
+  .swatch-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .swatch {
+    display: flex; gap: 12px; align-items: center;
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--r-sm);
+    padding: 12px;
+  }
+  .swatch-dot {
+    width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+    border: 1px solid var(--line-2);
+  }
+  .swatch .label { font-weight: 600; font-size: 13px; color: var(--text); }
+  .swatch .desc { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+  /* ---------- yield chart ---------- */
+  .chart-wrap { padding: 4px 0 0; }
+  .bars { display: flex; align-items: flex-end; gap: 8px; height: 180px; padding: 8px 4px 0; border-bottom: 1px solid var(--line); }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .bar {
+    width: 100%; max-width: 56px;
+    background: linear-gradient(180deg, var(--cyan), var(--cyan-2));
+    border-radius: 4px 4px 0 0; min-height: 2px;
+    box-shadow: 0 0 14px rgba(0,217,255,0.18);
+    transition: height .35s ease;
+  }
+  .bar-label { font-size: 10px; color: var(--text-faint); font-family: 'JetBrains Mono', monospace; }
+  .bar-value { font-size: 10px; color: var(--text); font-family: 'JetBrains Mono', monospace; }
+
+  /* ---------- calendar ---------- */
+  .cal-row {
+    display: grid; grid-template-columns: 90px 1fr; gap: 10px; align-items: center;
+    margin-bottom: 14px;
+  }
+  .cal-name { font-weight: 600; font-size: 13px; }
+  .cal-name small { display: block; color: var(--text-faint); font-size: 11px; font-weight: 400; }
+  .cal-track {
+    position: relative; height: 38px;
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--r-sm); overflow: hidden;
+  }
+  .cal-seg {
+    position: absolute; top: 0; bottom: 0;
+    border-right: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--text-faint); letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .cal-seg:last-child { border-right: none; }
+  .cal-seg.done { background: rgba(91,226,154,0.08); color: var(--green); }
+  .cal-seg.current { background: var(--cyan-soft); color: var(--cyan); box-shadow: inset 0 0 0 1px var(--cyan); }
+  .cal-marker {
+    position: absolute; top: -2px; bottom: -2px; width: 2px;
+    background: var(--cyan); box-shadow: 0 0 10px var(--cyan-glow);
+  }
+  .cal-axis {
+    display: grid; grid-template-columns: 90px 1fr; gap: 10px; margin-top: 4px;
+    font-size: 10px; color: var(--text-faint); font-family: 'JetBrains Mono', monospace;
+  }
+  .cal-axis .ticks { display: grid; grid-template-columns: repeat(6, 1fr); }
+  .cal-axis .ticks span { text-align: center; }
+
+  /* ---------- decision tree ---------- */
+  .tree { background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 14px; font-size: 13px; line-height: 1.6; }
+  .tree b { color: var(--cyan); }
+  .tree .branch { padding-left: 14px; border-left: 2px solid var(--line-2); margin: 6px 0 10px; }
+
+  /* ---------- modal ---------- */
+  .modal-back {
+    position: fixed; inset: 0; background: rgba(5,8,12,0.78);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px;
+  }
+  .modal-back.open { display: flex; animation: fadeIn .15s ease; }
+  .modal {
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--line-2); border-radius: var(--r);
+    width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto;
+    box-shadow: var(--shadow);
+  }
+  .modal-h {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px; border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; background: var(--panel); z-index: 1;
+  }
+  .modal-h h3 { margin: 0; font-size: 15px; font-weight: 600; }
+  .modal-x {
+    background: transparent; border: none; color: var(--text-dim);
+    width: 28px; height: 28px; border-radius: 6px;
+    display: grid; place-items: center;
+  }
+  .modal-x:hover { background: var(--bg-2); color: var(--text); }
+  .modal-body { padding: 16px 18px; }
+  .modal-foot {
+    display: flex; justify-content: flex-end; gap: 8px;
+    padding: 14px 18px; border-top: 1px solid var(--line);
+    position: sticky; bottom: 0; background: var(--panel);
+  }
+
+  /* ---------- toast ---------- */
+  .toast-wrap {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    z-index: 200; display: flex; flex-direction: column; gap: 8px;
+    pointer-events: none;
+  }
+  .toast {
+    background: var(--panel); border: 1px solid var(--line-2);
+    border-radius: var(--r-sm); padding: 11px 16px;
+    font-size: 13px; color: var(--text);
+    box-shadow: var(--shadow); pointer-events: auto;
+    display: flex; align-items: center; gap: 10px;
+    min-width: 240px; max-width: 380px;
+    animation: slideUp .25s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0;} to { transform: none; opacity: 1; } }
+  .toast.ok    { border-color: rgba(91,226,154,0.45); }
+  .toast.err   { border-color: rgba(255,93,108,0.45); }
+  .toast.info  { border-color: rgba(0,217,255,0.45); }
+
+  /* ---------- diagram ---------- */
+  .diagram {
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--r-sm);
+    padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--text-dim); line-height: 1.7; overflow-x: auto; white-space: pre;
+  }
+  .diagram .hi { color: var(--cyan); }
+
+  /* ---------- helpers ---------- */
+  .stack > * + * { margin-top: 12px; }
+  .stack-sm > * + * { margin-top: 8px; }
+  .muted { color: var(--text-dim); }
+  .empty {
+    text-align: center; padding: 28px 16px; color: var(--text-faint); font-size: 13px;
+  }
+  .hr { height: 1px; background: var(--line); margin: 14px 0; border: none; }
+  .center { text-align: center; }
+  .right { text-align: right; }
+  .nowrap { white-space: nowrap; }
+
+  /* ---------- skeleton loading ---------- */
+  .sk { background: linear-gradient(90deg, var(--panel) 0%, var(--panel-2) 50%, var(--panel) 100%);
+        background-size: 200% 100%; animation: sk 1.4s linear infinite; border-radius: 6px; }
+  @keyframes sk { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <!-- mushroom svg -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 11a9 9 0 0 1 18 0c0 1-.5 2-2 2H5c-1.5 0-2-1-2-2z" fill="currentColor" stroke="none"/>
+          <path d="M10 13v6a2 2 0 0 0 4 0v-6"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-title">Hillbilly Grow Tracker</div>
+        <div class="brand-sub">Monotub Ops · Cubensis</div>
+      </div>
+    </div>
+    <div class="topbar-spacer"></div>
+    <div class="sync-pill" id="syncPill" data-status="syncing" title="Connection status">
+      <span class="sync-dot"></span>
+      <span id="syncLabel">Connecting</span>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-view="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      Dashboard
+    </button>
+    <button class="tab" data-view="tubs">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16l-1 13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 7z"/><path d="M9 7V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v3"/></svg>
+      Tubs
+    </button>
+    <button class="tab" data-view="phaseguide">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4V4z"/><path d="M4 4v16"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+      Phase Guide
+    </button>
+    <button class="tab" data-view="harvest">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+      Harvest Log
+    </button>
+    <button class="tab" data-view="contam">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.6 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+      Contam
+    </button>
+    <button class="tab" data-view="calendar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Calendar
+    </button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ============================================================ DASHBOARD -->
+  <section class="view active" id="view-dashboard">
+    <h1 class="view-title">Operations Dashboard</h1>
+    <p class="view-sub">Live status across all three monotubs · synced via Supabase Realtime</p>
+
+    <div class="grid grid-3" id="tubCards" style="margin-bottom: 18px;"></div>
+
+    <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 18px; margin-bottom: 18px;" id="dashSplit">
+      <div class="panel">
+        <div class="panel-h">
+          <h3>Master Phase Timeline</h3>
+          <span class="chip cyan mono" id="timelinePosLabel">—</span>
+        </div>
+        <div class="timeline" id="masterTimeline"></div>
+      </div>
+      <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="stat">
+          <div class="label">Flushes</div>
+          <div class="value" id="statFlushes">0</div>
+          <div class="hint">total harvested</div>
+        </div>
+        <div class="stat">
+          <div class="label">Wet Yield</div>
+          <div class="value"><span id="statWet">0</span><span class="unit">g</span></div>
+          <div class="hint">across all tubs</div>
+        </div>
+        <div class="stat">
+          <div class="label">Dry Yield</div>
+          <div class="value"><span id="statDry">0</span><span class="unit">g</span></div>
+          <div class="hint">cured weight</div>
+        </div>
+        <div class="stat">
+          <div class="label">Contam</div>
+          <div class="value" id="statContam">0</div>
+          <div class="hint">events logged</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-h"><h3>Active Alerts</h3><span class="muted mono" id="alertsCount">0</span></div>
+      <div class="alerts" id="alertList"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ TUBS -->
+  <section class="view" id="view-tubs">
+    <h1 class="view-title">Tub Management</h1>
+    <p class="view-sub">Per-tub detail, observations, photos, harvest history</p>
+    <div id="tubDetail"></div>
+  </section>
+
+  <!-- ============================================================ PHASE GUIDE -->
+  <section class="view" id="view-phaseguide">
+    <h1 class="view-title">Phase Guide & Reference</h1>
+    <p class="view-sub">Master plan reference · sandwich tek · automation hookup</p>
+
+    <div class="grid grid-3" style="margin-bottom: 18px;">
+      <div class="info-card">
+        <div class="info-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          Fruiting Conditions
+        </div>
+        <div class="kv">
+          <div class="k">Temp</div><div class="v">74–76°F</div>
+          <div class="k">Humidity</div><div class="v">90–95%</div>
+          <div class="k">Light</div><div class="v">12 hr</div>
+          <div class="k">FAE</div><div class="v">on cycle</div>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+          Inkbird Settings
+        </div>
+        <div class="kv">
+          <div class="k">TS (set)</div><div class="v">77°F</div>
+          <div class="k">HD (heat diff)</div><div class="v">1°F</div>
+          <div class="k">CD (cool diff)</div><div class="v">1°F</div>
+          <div class="k">AH (alarm hi)</div><div class="v">85°F</div>
+          <div class="k">AL (alarm lo)</div><div class="v">70°F</div>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z"/><path d="M9 12l2 2 4-4"/></svg>
+          Strain Profile
+        </div>
+        <div class="kv">
+          <div class="k">Genetics</div><div class="v">Hillbilly</div>
+          <div class="k">Species</div><div class="v">P. cubensis</div>
+          <div class="k">Coloniz.</div><div class="v">7–14 d</div>
+          <div class="k">Pin after flip</div><div class="v">5–14 d</div>
+          <div class="k">Flushes</div><div class="v">3–5</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-2" style="margin-bottom: 18px;">
+      <div class="panel">
+        <div class="panel-h"><h3>Sandwich Tek Substrate</h3><span class="chip cyan mono">1 : 2 spawn ratio</span></div>
+        <div class="diagram">┌──────────────────────────────┐
+│   <span class="hi">TOP CAP — 1 lb spawn</span>      │  ← seals & inoculates surface
+├──────────────────────────────┤
+│   <span class="hi">MIDDLE — mixed bulk + spawn</span> │  ← main colonization zone
+├──────────────────────────────┤
+│   <span class="hi">BOTTOM BUFFER — 1 lb spawn</span>  │  ← jump-starts from base
+└──────────────────────────────┘
+          <span class="hi">Boomr Bag bulk substrate</span>
+</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h"><h3>Inventory</h3><span class="chip mono">stocked</span></div>
+        <div class="kv">
+          <div class="k">Grain bags</div><div class="v">3</div>
+          <div class="k">Boomr Bags</div><div class="v">8</div>
+          <div class="k">Myco Coco</div><div class="v">on hand</div>
+          <div class="k">Reserve grain</div><div class="v">2</div>
+        </div>
+        <hr class="hr" />
+        <div class="muted" style="font-size: 12px; line-height: 1.5;">
+          One grain bag = one tub. Two reserve bags held back for re-spawn or rescue.
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom: 18px;">
+      <div class="panel-h"><h3>Boomr Bin Automation Hookup</h3><span class="chip cyan mono">FAE · Mister · Probe</span></div>
+      <div class="diagram">                   ┌─────────────────────────┐
+                   │     <span class="hi">Mycontroller</span>        │
+                   │   (humidity + temp)     │
+                   └────┬────────┬───────┬───┘
+                        │        │       │
+              ┌─────────┘        │       └────────────┐
+              ▼                  ▼                    ▼
+        <span class="hi">FAE FAN</span>             <span class="hi">PROBE</span>             <span class="hi">MYCO-MISTER</span>
+   (fresh air exchange)   (in-bin sensor)     (humidity boost)
+        relay 1               sensor in           relay 2
+              │                  │                    │
+              └──────────────►  <span class="hi">BOOMR BIN</span>  ◄────────────┘
+                              74–76°F · 90–95% RH · 12 hr light
+</div>
+    </div>
+
+    <div id="phaseAccordion"></div>
+  </section>
+
+  <!-- ============================================================ HARVEST -->
+  <section class="view" id="view-harvest">
+    <h1 class="view-title">Harvest Log</h1>
+    <p class="view-sub">Per-flush wet/dry weights · moisture loss · running totals</p>
+
+    <div class="grid grid-4" style="margin-bottom: 18px;">
+      <div class="stat"><div class="label">Tub 1 Wet</div><div class="value"><span id="hT1Wet">0</span><span class="unit">g</span></div></div>
+      <div class="stat"><div class="label">Tub 2 Wet</div><div class="value"><span id="hT2Wet">0</span><span class="unit">g</span></div></div>
+      <div class="stat"><div class="label">Tub 3 Wet</div><div class="value"><span id="hT3Wet">0</span><span class="unit">g</span></div></div>
+      <div class="stat"><div class="label">Avg Moisture Loss</div><div class="value"><span id="hMoist">—</span><span class="unit">%</span></div></div>
+    </div>
+
+    <div class="panel" style="margin-bottom: 18px;">
+      <div class="panel-h">
+        <h3>Yield Per Flush</h3>
+        <button class="btn primary sm" id="newHarvestBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Log Harvest
+        </button>
+      </div>
+      <div class="chart-wrap">
+        <div class="bars" id="yieldBars"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-h"><h3>Recent Harvests</h3></div>
+      <div id="harvestList"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ CONTAM -->
+  <section class="view" id="view-contam">
+    <h1 class="view-title">Contamination Checker</h1>
+    <p class="view-sub">Quick reference · log suspected events · decision tree</p>
+
+    <div class="grid grid-2" style="margin-bottom: 18px;">
+      <div class="panel">
+        <div class="panel-h"><h3>Color Reference</h3></div>
+        <div class="swatch-row">
+          <div class="swatch"><div class="swatch-dot" style="background:#3a8c3a"></div><div><div class="label">Green</div><div class="desc">Trichoderma · BAD · isolate now</div></div></div>
+          <div class="swatch"><div class="swatch-dot" style="background:#1c1c1c"></div><div><div class="label">Black</div><div class="desc">Aspergillus · BAD · sealed disposal</div></div></div>
+          <div class="swatch"><div class="swatch-dot" style="background:#d56fa3"></div><div><div class="label">Pink</div><div class="desc">Bacterial · BAD · isolate</div></div></div>
+          <div class="swatch"><div class="swatch-dot" style="background:#f4f4f4"></div><div><div class="label">White fluff</div><div class="desc">Mycelium · NORMAL</div></div></div>
+          <div class="swatch"><div class="swatch-dot" style="background:#3b6da6"></div><div><div class="label">Blue bruising</div><div class="desc">Psilocin oxidation · NORMAL</div></div></div>
+          <div class="swatch"><div class="swatch-dot" style="background:#c9a96a"></div><div><div class="label">Yellow ooze</div><div class="desc">Bacterial metabolite · WATCH</div></div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h">
+          <h3>Decision Tree</h3>
+          <button class="btn primary sm" id="newContamBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Log Event
+          </button>
+        </div>
+        <div class="tree">
+          <div><b>Q1.</b> Is it green, black, or pink?</div>
+          <div class="branch">YES → <b>ISOLATE.</b> Move tub away from clean tubs immediately.</div>
+          <div><b>Q2.</b> Larger than a quarter or spreading fast?</div>
+          <div class="branch">YES → <b>TERMINATE.</b> Bag, seal, dispose outdoors.</div>
+          <div class="branch">NO  → <b>SPOT TREAT.</b> H2O2 cotton, monitor 24 h.</div>
+          <div><b>Q3.</b> Pin set already triggered?</div>
+          <div class="branch">YES → <b>RUSH HARVEST.</b> Pull mature pins early to bank yield.</div>
+          <div class="branch">NO  → <b>WATCH.</b> Re-check every 12 h, photo log.</div>
+          <div><b>Q4.</b> White fluff or blue bruising only?</div>
+          <div class="branch">→ <b>NORMAL.</b> Continue grow. Note in observations.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-h"><h3>Logged Events</h3></div>
+      <div id="contamList"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ CALENDAR -->
+  <section class="view" id="view-calendar">
+    <h1 class="view-title">Calendar View</h1>
+    <p class="view-sub">Predicted milestones based on inoculation dates · 6 phase track</p>
+    <div class="panel">
+      <div id="calendar"></div>
+    </div>
+    <div class="grid grid-3" style="margin-top: 18px;" id="milestoneCards"></div>
+  </section>
+
+</main>
+
+<!-- ============================================================ MODAL -->
+<div class="modal-back" id="modalBack" role="dialog" aria-modal="true">
+  <div class="modal" id="modal">
+    <div class="modal-h"><h3 id="modalTitle">Modal</h3>
+      <button class="modal-x" id="modalX" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Supabase JS via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+
+<script>
+/* =====================================================================
+   CONFIG — fill in from Supabase Project Settings -> API.
+   This is a personal tool. anon key is intentionally public-readable.
+===================================================================== */
+const SUPABASE_URL      = "https://ouaiwmepisqpqvegesna.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YWl3bWVwaXNxcHF2ZWdlc25hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNDI3NDAsImV4cCI6MjA5MjkxODc0MH0._kViAbU4OxdnY37tu108bANWS16rfg4bdBqwCoHChI0";
+const STORAGE_BUCKET    = "grow-photos";
+
+/* =====================================================================
+   REFERENCE DATA
+===================================================================== */
+const PHASES = [
+  { n: 1, name: "Prep & Spawn to Bulk", days: 1, short: "Prep",        color: "#00d9ff",
+    intro: "Mix grain spawn into pasteurized bulk substrate using sandwich tek and load tubs.",
+    steps: [
+      "Sanitize work surface, gloves, and tub interior with 70% iso.",
+      "Hydrate Boomr Bag bulk substrate per package — field cap moisture.",
+      "Lay 1 lb of grain spawn as the BOTTOM BUFFER, level it.",
+      "Add ~50% bulk substrate, then mix in 1 lb spawn — this is the MIDDLE.",
+      "Top with remaining bulk, then cap with the final 1 lb spawn (TOP CAP).",
+      "Lid on, vent holes taped, store at 77°F dark.",
+      "Log inoculation_date — phase auto-advances to Colonization."
+    ]},
+  { n: 2, name: "Colonization", days: 11, short: "Colonize", color: "#00b8d4",
+    intro: "Mycelium runs through the substrate. Keep dark, warm, sealed.",
+    steps: [
+      "Maintain 77°F (Inkbird TS=77, HD=1, CD=1).",
+      "No FAE yet — CO2-rich environment accelerates run.",
+      "Check daily for contam — green/black/pink = isolate immediately.",
+      "Expect full colonization in 7–14 days for Hillbilly.",
+      "Surface should be 95%+ white before flipping to fruit."
+    ]},
+  { n: 3, name: "Casing & Fruiting Flip", days: 1, short: "Flip", color: "#7be0ff",
+    intro: "Trigger pinning by dropping CO2, raising humidity, introducing light.",
+    steps: [
+      "Move tub to Boomr Bin / fruiting chamber.",
+      "Drop temp to 74–76°F.",
+      "Open vent holes — FAE Fan on cycle (5–10 min/hr).",
+      "Myco-Mister on humidity controller, target 90–95% RH.",
+      "12 hr indirect light cycle.",
+      "Expect first pins in 5–14 days."
+    ]},
+  { n: 4, name: "Pinning & Fruiting", days: 7, short: "Pin", color: "#5be29a",
+    intro: "Pins develop into fruits. Maintain conditions, photograph daily.",
+    steps: [
+      "Daily mist if humidity dips below 88%.",
+      "FAE on cycle — pins need air movement to grow tall, not stunted.",
+      "Photograph each tub for size tracking.",
+      "Avoid touching pins — oils inhibit growth.",
+      "Watch for veil break — that's harvest signal."
+    ]},
+  { n: 5, name: "Harvest", days: 2, short: "Harvest", color: "#ffb84d",
+    intro: "Pull all mature fruits at first veil break. Weigh wet, dry, log.",
+    steps: [
+      "Pull EVERY mature fruit — partial pulls reduce next flush.",
+      "Twist + pull from base, don't cut.",
+      "Weigh wet immediately on scale, log to Harvest Log.",
+      "Place on dehydrator rack at 105°F until cracker-dry (12–24 hr).",
+      "Re-weigh dry, calculate moisture loss (~90%).",
+      "Photograph the haul before drying."
+    ]},
+  { n: 6, name: "Reflush", days: 7, short: "Reflush", color: "#5be29a",
+    intro: "Soak, drain, re-cycle conditions to trigger next flush. 3–5 flushes possible.",
+    steps: [
+      "Top off humidity — heavy mist or dunk + drain.",
+      "Reset temp/humidity cycle as in Phase 3.",
+      "Wait 5–10 days for next pin set.",
+      "After 3rd flush, evaluate yield — diminishing returns past 5.",
+      "When done, retire substrate to compost or outdoor casing."
+    ]}
+];
+const TOTAL_PHASE_DAYS = PHASES.reduce((a, p) => a + p.days, 0);
+
+/* =====================================================================
+   APP STATE
+===================================================================== */
+const state = {
+  tubs: [],
+  phaseLog: [],
+  observations: [],
+  harvests: [],
+  contams: [],
+  view: "dashboard",
+  currentTub: null,         // for tubs detail view
+  online: navigator.onLine,
+  syncing: false,
+  offlineQueue: [],
+  initialized: false
+};
+
+let sb = null;
+let channels = [];
+
+/* =====================================================================
+   UTIL
+===================================================================== */
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const fmtDate = (d) => {
+  if (!d) return "—";
+  const dt = new Date(d);
+  return dt.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+};
+const fmtTime = (d) => {
+  if (!d) return "—";
+  const dt = new Date(d);
+  return dt.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+};
+const fmtDateTime = (d) => fmtDate(d) + " " + fmtTime(d);
+const daysSince = (d) => {
+  if (!d) return 0;
+  return Math.floor((Date.now() - new Date(d).getTime()) / 86400000);
+};
+const addDays = (d, n) => new Date(new Date(d).getTime() + n * 86400000);
+const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
+const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+  ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));
+
+function setSync(status, label) {
+  const el = $("#syncPill");
+  el.dataset.status = status;
+  $("#syncLabel").textContent = label || ({
+    online: "Synced", syncing: "Syncing", offline: "Offline", error: "Error"
+  }[status] || status);
+}
+
+function toast(msg, kind = "info", ttl = 2800) {
+  const w = $("#toastWrap");
+  const el = document.createElement("div");
+  el.className = "toast " + kind;
+  el.innerHTML = `<span>${escapeHtml(msg)}</span>`;
+  w.appendChild(el);
+  setTimeout(() => { el.style.opacity = "0"; el.style.transform = "translateY(10px)"; }, ttl - 250);
+  setTimeout(() => el.remove(), ttl);
+}
+
+/* =====================================================================
+   MODAL
+===================================================================== */
+function openModal({ title, bodyHtml, footerHtml, onMount }) {
+  $("#modalTitle").textContent = title;
+  $("#modalBody").innerHTML = bodyHtml || "";
+  $("#modalFoot").innerHTML = footerHtml || "";
+  $("#modalBack").classList.add("open");
+  if (onMount) onMount($("#modal"));
+}
+function closeModal() { $("#modalBack").classList.remove("open"); }
+$("#modalX").addEventListener("click", closeModal);
+$("#modalBack").addEventListener("click", (e) => { if (e.target === $("#modalBack")) closeModal(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+/* =====================================================================
+   SUPABASE BOOTSTRAP
+===================================================================== */
+function initSupabase() {
+  const ok = SUPABASE_URL && !SUPABASE_URL.includes("YOUR") &&
+             SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes("YOUR");
+  if (!ok) {
+    setSync("error", "Not configured");
+    document.querySelector("main").innerHTML = `
+      <div class="panel" style="max-width: 640px; margin: 60px auto;">
+        <div class="panel-h"><h3>Supabase not configured</h3></div>
+        <p class="muted">Open <code>index.html</code> and set <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code> at the top of the &lt;script&gt; block, then run <code>schema.sql</code> in the Supabase SQL Editor.</p>
+      </div>`;
+    return false;
+  }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    realtime: { params: { eventsPerSecond: 10 } }
+  });
+  return true;
+}
+
+async function loadAll() {
+  setSync("syncing", "Loading");
+  const queries = await Promise.all([
+    sb.from("tubs").select("*").order("tub_number"),
+    sb.from("phase_log").select("*").order("entered_at", { ascending: false }),
+    sb.from("observations").select("*").order("timestamp", { ascending: false }),
+    sb.from("harvests").select("*").order("harvest_date", { ascending: false }),
+    sb.from("contamination_events").select("*").order("detected_at", { ascending: false })
+  ]);
+  const errs = queries.filter(q => q.error);
+  if (errs.length) {
+    setSync("error", "Load failed");
+    toast("Load error: " + errs[0].error.message, "err", 5000);
+    console.error(errs);
+    return;
+  }
+  state.tubs        = queries[0].data || [];
+  state.phaseLog    = queries[1].data || [];
+  state.observations= queries[2].data || [];
+  state.harvests    = queries[3].data || [];
+  state.contams     = queries[4].data || [];
+
+  // self-heal: ensure 3 tub rows exist (in case schema seed didn't run)
+  const have = new Set(state.tubs.map(t => t.tub_number));
+  for (const n of [1,2,3]) {
+    if (!have.has(n)) {
+      const { data, error } = await sb.from("tubs").insert({ tub_number: n, strain: "Hillbilly", current_phase: 1 }).select();
+      if (!error && data) state.tubs.push(data[0]);
+    }
+  }
+  state.tubs.sort((a,b) => a.tub_number - b.tub_number);
+
+  setSync("online");
+  state.initialized = true;
+  renderAll();
+}
+
+function subscribeAll() {
+  channels.forEach(ch => sb.removeChannel(ch));
+  channels = [];
+  const tables = ["tubs","phase_log","observations","harvests","contamination_events"];
+  tables.forEach(t => {
+    const ch = sb.channel("rt-" + t)
+      .on("postgres_changes", { event: "*", schema: "public", table: t }, (payload) => {
+        applyRealtime(t, payload);
+      })
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") setSync("online");
+      });
+    channels.push(ch);
+  });
+}
+
+function applyRealtime(table, payload) {
+  const map = {
+    tubs: "tubs", phase_log: "phaseLog", observations: "observations",
+    harvests: "harvests", contamination_events: "contams"
+  };
+  const key = map[table];
+  const list = state[key];
+  const row = payload.new || payload.old;
+  if (!row) return;
+  if (payload.eventType === "INSERT") {
+    if (!list.some(r => r.id === row.id)) list.unshift(row);
+  } else if (payload.eventType === "UPDATE") {
+    const i = list.findIndex(r => r.id === row.id);
+    if (i >= 0) list[i] = row;
+    else list.unshift(row);
+  } else if (payload.eventType === "DELETE") {
+    const i = list.findIndex(r => r.id === payload.old.id);
+    if (i >= 0) list.splice(i, 1);
+  }
+  if (key === "tubs") state.tubs.sort((a,b) => a.tub_number - b.tub_number);
+  renderAll();
+}
+
+/* =====================================================================
+   OFFLINE QUEUE — optimistic with rollback
+===================================================================== */
+window.addEventListener("online",  () => { state.online = true;  setSync("online"); flushQueue(); });
+window.addEventListener("offline", () => { state.online = false; setSync("offline"); });
+
+function enqueue(op) {
+  state.offlineQueue.push(op);
+  try { localStorage.setItem("hgt_q", JSON.stringify(state.offlineQueue)); } catch(_) {}
+}
+function loadQueue() {
+  try { state.offlineQueue = JSON.parse(localStorage.getItem("hgt_q") || "[]"); } catch(_) {}
+}
+async function flushQueue() {
+  if (!state.offlineQueue.length) return;
+  setSync("syncing", "Flushing queue");
+  const q = state.offlineQueue.slice();
+  state.offlineQueue = [];
+  localStorage.removeItem("hgt_q");
+  for (const op of q) {
+    try { await runOp(op); } catch (e) { enqueue(op); }
+  }
+  setSync(state.online ? "online" : "offline");
+}
+async function runOp(op) {
+  if (op.kind === "insert") return sb.from(op.table).insert(op.row).throwOnError();
+  if (op.kind === "update") return sb.from(op.table).update(op.patch).eq("id", op.id).throwOnError();
+  if (op.kind === "delete") return sb.from(op.table).delete().eq("id", op.id).throwOnError();
+}
+
+async function mutate(op, optimisticApply, rollback) {
+  optimisticApply?.();
+  renderAll();
+  if (!state.online) {
+    enqueue(op);
+    toast("Saved offline — will sync", "info");
+    return;
+  }
+  setSync("syncing");
+  try {
+    await runOp(op);
+    setSync("online");
+  } catch (e) {
+    setSync("error", "Save failed");
+    toast("Save failed: " + (e.message || e), "err", 4000);
+    rollback?.();
+    renderAll();
+    setTimeout(() => setSync(state.online ? "online" : "offline"), 1500);
+  }
+}
+
+/* =====================================================================
+   PHOTO UPLOAD
+===================================================================== */
+async function uploadPhoto(file, prefix = "obs") {
+  if (!file) return null;
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const path = `${prefix}/${Date.now()}_${uid()}.${ext}`;
+  const { error } = await sb.storage.from(STORAGE_BUCKET).upload(path, file, {
+    cacheControl: "3600", upsert: false, contentType: file.type || `image/${ext}`
+  });
+  if (error) throw error;
+  const { data } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+/* =====================================================================
+   DOMAIN HELPERS
+===================================================================== */
+function tubAge(tub) { return tub.inoculation_date ? daysSince(tub.inoculation_date) : 0; }
+function phaseObj(n) { return PHASES.find(p => p.n === n) || PHASES[0]; }
+
+function tubObservations(id)  { return state.observations.filter(o => o.tub_id === id); }
+function tubHarvests(id)      { return state.harvests.filter(h => h.tub_id === id); }
+function tubContams(id)       { return state.contams.filter(c => c.tub_id === id); }
+function tubPhaseLog(id)      { return state.phaseLog.filter(p => p.tub_id === id); }
+
+function sumWet(arr) { return arr.reduce((a, h) => a + (Number(h.wet_weight_g) || 0), 0); }
+function sumDry(arr) { return arr.reduce((a, h) => a + (Number(h.dry_weight_g) || 0), 0); }
+
+function nextMilestone(tub) {
+  if (!tub.inoculation_date) return { label: "Set inoculation date", days: null };
+  const ph = phaseObj(tub.current_phase);
+  const log = tubPhaseLog(tub.id).find(p => p.phase_number === tub.current_phase);
+  const startedAt = log ? log.entered_at : tub.inoculation_date;
+  const elapsed = daysSince(startedAt);
+  const remaining = ph.days - elapsed;
+  const next = phaseObj(Math.min(6, tub.current_phase + 1));
+  if (tub.current_phase >= 6) return { label: "Reflush window", days: remaining };
+  return { label: `→ ${next.short}`, days: remaining };
+}
+
+/* milestones for calendar */
+function predictedMilestones(tub) {
+  if (!tub.inoculation_date) return [];
+  const start = new Date(tub.inoculation_date);
+  let cursor = new Date(start);
+  return PHASES.map((p) => {
+    const enter = new Date(cursor);
+    cursor = addDays(cursor, p.days);
+    return { phase: p, enter, exit: new Date(cursor) };
+  });
+}
+
+/* =====================================================================
+   ROUTING
+===================================================================== */
+$("#tabs").addEventListener("click", (e) => {
+  const btn = e.target.closest(".tab");
+  if (!btn) return;
+  switchView(btn.dataset.view);
+});
+function switchView(v) {
+  state.view = v;
+  $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === v));
+  $$(".view").forEach(s => s.classList.toggle("active", s.id === "view-" + v));
+  renderAll();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* =====================================================================
+   RENDER
+===================================================================== */
+function renderAll() {
+  if (!state.initialized) return;
+  if (state.view === "dashboard") renderDashboard();
+  if (state.view === "tubs")      renderTubs();
+  if (state.view === "phaseguide")renderPhaseGuide();
+  if (state.view === "harvest")   renderHarvest();
+  if (state.view === "contam")    renderContam();
+  if (state.view === "calendar")  renderCalendar();
+}
+
+/* ---------- dashboard ---------- */
+function renderDashboard() {
+  // tub cards
+  const wrap = $("#tubCards");
+  wrap.innerHTML = state.tubs.map(t => {
+    const ph = phaseObj(t.current_phase);
+    const age = tubAge(t);
+    const ms = nextMilestone(t);
+    const pct = Math.min(100, Math.round((t.current_phase - 1 + 0.4) / 6 * 100));
+    return `
+      <div class="tub-card" data-phase="${t.current_phase}" data-tub="${t.id}">
+        <div class="tub-strip"></div>
+        <div class="tub-body">
+          <div class="tub-head">
+            <div class="tub-name">Monotub ${t.tub_number}</div>
+            <span class="tub-no mono">#${String(t.tub_number).padStart(2,"0")}</span>
+          </div>
+          <div class="tub-phase-row">
+            <div class="tub-phase-name">${escapeHtml(ph.name)}</div>
+            <div class="tub-phase-num mono">P${ph.n}/6</div>
+          </div>
+          <div class="tub-progress">
+            <div class="progress-track"><div class="progress-fill" style="width: ${pct}%;"></div></div>
+            <div class="progress-label"><span>${escapeHtml(t.strain || "Hillbilly")}</span><span>${pct}%</span></div>
+          </div>
+          <div class="tub-meta">
+            <div><div class="k">Age</div><div class="v">${age}d</div></div>
+            <div><div class="k">Inoc</div><div class="v">${fmtDate(t.inoculation_date)}</div></div>
+            <div><div class="k">${escapeHtml(ms.label)}</div><div class="v">${ms.days === null ? "—" : (ms.days >= 0 ? `${ms.days}d` : `+${-ms.days}d`)}</div></div>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+  $$("#tubCards .tub-card").forEach(card => {
+    card.addEventListener("click", () => {
+      state.currentTub = card.dataset.tub;
+      switchView("tubs");
+    });
+  });
+
+  // master timeline (averaged across tubs — show the leading phase)
+  const leading = state.tubs.length ? Math.max(...state.tubs.map(t => t.current_phase)) : 1;
+  $("#masterTimeline").innerHTML = PHASES.map(p => `
+    <div class="timeline-step ${p.n < leading ? "done" : ""} ${p.n === leading ? "current" : ""}">
+      <div class="ph-num mono">P${p.n}</div>
+      <div class="ph-name">${escapeHtml(p.short)}</div>
+    </div>`).join("");
+  $("#timelinePosLabel").textContent = `Leading: P${leading} · ${phaseObj(leading).name}`;
+
+  // stats
+  const flushes = state.harvests.length;
+  const wet = sumWet(state.harvests);
+  const dry = sumDry(state.harvests);
+  $("#statFlushes").textContent = flushes;
+  $("#statWet").textContent = wet.toFixed(0);
+  $("#statDry").textContent = dry.toFixed(0);
+  $("#statContam").textContent = state.contams.length;
+
+  // alerts
+  renderAlerts();
+}
+
+function renderAlerts() {
+  const out = [];
+  state.tubs.forEach(t => {
+    const ph = phaseObj(t.current_phase);
+    const log = tubPhaseLog(t.id).find(p => p.phase_number === t.current_phase);
+    const startedAt = log ? log.entered_at : t.inoculation_date;
+    const elapsed = startedAt ? daysSince(startedAt) : null;
+
+    if (!t.inoculation_date) {
+      out.push({ kind: "info", body: `<b>Tub ${t.tub_number}:</b> needs inoculation date<small>Open the tub and set the inoculation date to start the timer.</small>` });
+      return;
+    }
+    if (t.current_phase === 2 && elapsed >= 7) {
+      out.push({ kind: "info", body: `<b>Tub ${t.tub_number}:</b> colonization window open<small>Day ${elapsed} of run — check surface for 95%+ white coverage. Ready to flip when fully colonized.</small>` });
+    }
+    if (t.current_phase === 3 && elapsed >= 5) {
+      out.push({ kind: "info", body: `<b>Tub ${t.tub_number}:</b> pinning expected<small>${elapsed} days post-flip — first pins typically appear 5–14 days in.</small>` });
+    }
+    if (t.current_phase === 4 && elapsed >= 5) {
+      out.push({ kind: "warn", body: `<b>Tub ${t.tub_number}:</b> harvest window approaching<small>Watch for veil break — pull all mature fruits to bank yield.</small>` });
+    }
+    if (t.current_phase === 5) {
+      out.push({ kind: "ok", body: `<b>Tub ${t.tub_number}:</b> active harvest<small>Pull mature fruits, weigh wet, log to Harvest Log.</small>` });
+    }
+    if (t.current_phase === 6 && elapsed >= 10) {
+      out.push({ kind: "info", body: `<b>Tub ${t.tub_number}:</b> reflush stalled?<small>${elapsed} days since reflush — consider terminating after 5 flushes.</small>` });
+    }
+    const recent = tubContams(t.id).find(c => daysSince(c.detected_at) <= 3);
+    if (recent) {
+      out.push({ kind: "danger", body: `<b>Tub ${t.tub_number}:</b> recent contamination event<small>${escapeHtml(recent.type || "unknown")} detected ${daysSince(recent.detected_at)}d ago — verify isolation.</small>` });
+    }
+  });
+  if (!out.length) {
+    out.push({ kind: "ok", body: `<b>All systems nominal.</b><small>No active alerts. Conditions stable across all tubs.</small>` });
+  }
+  $("#alertsCount").textContent = out.filter(a => a.kind !== "ok" || out.length === 1 ? true : true).length;
+  $("#alertList").innerHTML = out.map(a => `
+    <div class="alert ${a.kind}"><span class="dot"></span><div class="body">${a.body}</div></div>
+  `).join("");
+}
+
+/* ---------- tubs ---------- */
+function renderTubs() {
+  if (!state.tubs.length) {
+    $("#tubDetail").innerHTML = `<div class="empty">No tubs yet — schema seed should have created 3.</div>`;
+    return;
+  }
+  if (!state.currentTub || !state.tubs.find(t => t.id === state.currentTub)) {
+    state.currentTub = state.tubs[0].id;
+  }
+  const tabs = state.tubs.map(t => `
+    <button class="tab ${t.id === state.currentTub ? "active" : ""}" data-tub-tab="${t.id}">
+      <span class="mono">#${t.tub_number}</span> Tub ${t.tub_number}
+    </button>`).join("");
+
+  $("#tubDetail").innerHTML = `
+    <div style="display:flex; gap:6px; flex-wrap: wrap; margin-bottom: 14px;">${tabs}</div>
+    <div id="tubBody"></div>
+  `;
+  $$("#tubDetail [data-tub-tab]").forEach(b => b.addEventListener("click", () => {
+    state.currentTub = b.dataset.tubTab;
+    renderTubs();
+  }));
+  renderTubBody();
+}
+
+function renderTubBody() {
+  const t = state.tubs.find(x => x.id === state.currentTub);
+  if (!t) return;
+  const ph = phaseObj(t.current_phase);
+  const obs = tubObservations(t.id);
+  const harv = tubHarvests(t.id);
+  const cont = tubContams(t.id);
+  const wet = sumWet(harv), dry = sumDry(harv);
+
+  $("#tubBody").innerHTML = `
+    <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 18px;">
+      <div class="stack">
+        <div class="panel">
+          <div class="panel-h">
+            <h3>Tub ${t.tub_number} · ${escapeHtml(t.strain)}</h3>
+            <span class="chip cyan mono">P${ph.n} · ${escapeHtml(ph.short)}</span>
+          </div>
+          <div class="grid grid-3" style="gap:12px;">
+            <div class="info-card"><div class="info-title">Inoculation</div><div class="kv"><div class="k">Date</div><div class="v">${fmtDate(t.inoculation_date)}</div><div class="k">Age</div><div class="v">${tubAge(t)} days</div></div></div>
+            <div class="info-card"><div class="info-title">Current Phase</div><div class="kv"><div class="k">Phase</div><div class="v">${ph.n}/6</div><div class="k">Stage</div><div class="v">${escapeHtml(ph.short)}</div></div></div>
+            <div class="info-card"><div class="info-title">Yield</div><div class="kv"><div class="k">Wet</div><div class="v">${wet.toFixed(0)} g</div><div class="k">Dry</div><div class="v">${dry.toFixed(0)} g</div></div></div>
+          </div>
+          <div class="timeline" style="margin-top: 14px;">
+            ${PHASES.map(p => `
+              <div class="timeline-step ${p.n < t.current_phase ? "done" : ""} ${p.n === t.current_phase ? "current" : ""}">
+                <div class="ph-num mono">P${p.n}</div>
+                <div class="ph-name">${escapeHtml(p.short)}</div>
+              </div>`).join("")}
+          </div>
+          <div class="btn-row" style="margin-top: 14px;">
+            <button class="btn primary" id="advBtn" ${t.current_phase >= 6 ? "disabled" : ""}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+              Advance to ${t.current_phase >= 6 ? "—" : phaseObj(t.current_phase + 1).short}
+            </button>
+            <button class="btn ghost" id="prevBtn" ${t.current_phase <= 1 ? "disabled" : ""}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M11 19l-7-7 7-7"/></svg>
+              Back
+            </button>
+            <button class="btn ghost" id="setInocBtn">Set inoculation date</button>
+            <button class="btn ghost" id="addObsBtn">+ Observation</button>
+            <button class="btn ghost" id="addHarvestBtn">+ Harvest</button>
+            <button class="btn ghost" id="addContamBtn">+ Contam</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><h3>Observations</h3><span class="muted mono">${obs.length}</span></div>
+          ${obs.length === 0 ? `<div class="empty">No observations yet — log your first one.</div>` :
+            obs.map(o => `
+              <div class="row">
+                <div class="ts mono">${fmtDate(o.timestamp)}<br><span class="muted">${fmtTime(o.timestamp)}</span></div>
+                ${o.photo_url ? `<img class="photo" src="${escapeHtml(o.photo_url)}" alt="">` : ""}
+                <div class="text">${escapeHtml(o.note || "")}</div>
+                <div class="actions"><button class="btn ghost sm" data-del-obs="${o.id}">Delete</button></div>
+              </div>`).join("")}
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><h3>Flush History</h3><span class="muted mono">${harv.length} flush${harv.length===1?"":"es"}</span></div>
+          ${harv.length === 0 ? `<div class="empty">No harvests logged yet.</div>` :
+            harv.map(h => {
+              const moist = (h.wet_weight_g && h.dry_weight_g) ? Math.round((1 - h.dry_weight_g/h.wet_weight_g)*100) : null;
+              return `
+              <div class="row">
+                <div class="ts mono">${fmtDate(h.harvest_date)}<br><span class="muted">F${h.flush_number}</span></div>
+                ${h.photo_url ? `<img class="photo" src="${escapeHtml(h.photo_url)}" alt="">` : ""}
+                <div class="text">
+                  <b>${(h.wet_weight_g||0).toFixed(0)}g wet</b>${h.dry_weight_g ? ` → <b>${(h.dry_weight_g).toFixed(0)}g dry</b>` : ""}
+                  ${moist !== null ? `<span class="chip mono" style="margin-left:8px;">${moist}% moisture loss</span>` : ""}
+                  ${h.notes ? `<div class="muted" style="margin-top:4px;">${escapeHtml(h.notes)}</div>` : ""}
+                </div>
+                <div class="actions"><button class="btn ghost sm" data-del-harvest="${h.id}">Delete</button></div>
+              </div>`;
+            }).join("")}
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="info-card">
+          <div class="info-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+            Inkbird Settings
+          </div>
+          <div class="kv">
+            <div class="k">TS (set)</div><div class="v">77°F</div>
+            <div class="k">HD</div><div class="v">1°F</div>
+            <div class="k">CD</div><div class="v">1°F</div>
+            <div class="k">AH</div><div class="v">85°F</div>
+            <div class="k">AL</div><div class="v">70°F</div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-title">Current Phase Steps</div>
+          <ol style="margin: 6px 0 0 18px; padding: 0; font-size: 12.5px; line-height: 1.55;">
+            ${ph.steps.map(s => `<li>${escapeHtml(s)}</li>`).join("")}
+          </ol>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><h3>Contam Log</h3><span class="muted mono">${cont.length}</span></div>
+          ${cont.length === 0 ? `<div class="empty">No contam events.</div>` :
+            cont.map(c => `
+              <div class="row">
+                <div class="ts mono">${fmtDate(c.detected_at)}</div>
+                ${c.photo_url ? `<img class="photo" src="${escapeHtml(c.photo_url)}" alt="">` : ""}
+                <div class="text">
+                  <span class="chip ${c.type === "green" ? "green" : c.type === "black" ? "" : c.type === "pink" ? "red" : "amber"}">${escapeHtml(c.type || "other")}</span>
+                  <div class="muted" style="margin-top:4px;">${escapeHtml(c.action_taken || c.notes || "")}</div>
+                </div>
+                <div class="actions"><button class="btn ghost sm" data-del-contam="${c.id}">Delete</button></div>
+              </div>`).join("")}
+        </div>
+      </div>
+    </div>
+  `;
+
+  $("#advBtn").addEventListener("click", () => advancePhase(t, +1));
+  $("#prevBtn").addEventListener("click", () => advancePhase(t, -1));
+  $("#setInocBtn").addEventListener("click", () => openInocModal(t));
+  $("#addObsBtn").addEventListener("click", () => openObsModal(t));
+  $("#addHarvestBtn").addEventListener("click", () => openHarvestModal(t));
+  $("#addContamBtn").addEventListener("click", () => openContamModal(t));
+
+  $$("[data-del-obs]").forEach(b => b.addEventListener("click", () => deleteRow("observations", "observations", b.dataset.delObs)));
+  $$("[data-del-harvest]").forEach(b => b.addEventListener("click", () => deleteRow("harvests", "harvests", b.dataset.delHarvest)));
+  $$("[data-del-contam]").forEach(b => b.addEventListener("click", () => deleteRow("contamination_events", "contams", b.dataset.delContam)));
+}
+
+function deleteRow(table, stateKey, id) {
+  if (!confirm("Delete this entry?")) return;
+  const list = state[stateKey];
+  const idx = list.findIndex(r => r.id === id);
+  const old = list[idx];
+  mutate(
+    { kind: "delete", table, id },
+    () => list.splice(idx, 1),
+    () => { if (old) list.splice(idx, 0, old); }
+  );
+}
+
+/* ---------- phase advance ---------- */
+function advancePhase(tub, delta) {
+  const next = tub.current_phase + delta;
+  if (next < 1 || next > 6) return;
+  const oldPhase = tub.current_phase;
+  const id = tub.id;
+
+  // tub update
+  mutate(
+    { kind: "update", table: "tubs", id, patch: { current_phase: next, updated_at: new Date().toISOString() } },
+    () => { tub.current_phase = next; },
+    () => { tub.current_phase = oldPhase; }
+  );
+
+  // forward-only: log entry into the new phase
+  if (delta > 0) {
+    const entry = { id: uid(), tub_id: id, phase_number: next, entered_at: new Date().toISOString(), notes: null };
+    mutate(
+      { kind: "insert", table: "phase_log", row: entry },
+      () => state.phaseLog.unshift(entry),
+      () => { const i = state.phaseLog.findIndex(p => p.id === entry.id); if (i>=0) state.phaseLog.splice(i, 1); }
+    );
+    toast(`Tub ${tub.tub_number} → ${phaseObj(next).name}`, "ok");
+  }
+}
+
+/* ---------- inoculation date modal ---------- */
+function openInocModal(t) {
+  const cur = t.inoculation_date ? new Date(t.inoculation_date).toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
+  openModal({
+    title: `Inoculation date — Tub ${t.tub_number}`,
+    bodyHtml: `
+      <div class="field">
+        <label>Inoculation date</label>
+        <input type="date" id="inocDate" value="${cur}">
+      </div>
+      <p class="muted" style="font-size:12px;">Setting this starts the timer and auto-advances the tub to <b>Phase 2 (Colonization)</b> if it's still in Phase 1.</p>`,
+    footerHtml: `<button class="btn ghost" id="cancelI">Cancel</button><button class="btn primary" id="saveI">Save</button>`,
+    onMount: () => {
+      $("#cancelI").addEventListener("click", closeModal);
+      $("#saveI").addEventListener("click", () => {
+        const v = $("#inocDate").value;
+        if (!v) return;
+        const iso = new Date(v + "T12:00:00").toISOString();
+        const old = { inoculation_date: t.inoculation_date, current_phase: t.current_phase };
+        const nextPhase = t.current_phase === 1 ? 2 : t.current_phase;
+        mutate(
+          { kind: "update", table: "tubs", id: t.id, patch: { inoculation_date: iso, current_phase: nextPhase } },
+          () => { t.inoculation_date = iso; t.current_phase = nextPhase; },
+          () => { t.inoculation_date = old.inoculation_date; t.current_phase = old.current_phase; }
+        );
+        if (nextPhase !== old.current_phase) {
+          const entry = { id: uid(), tub_id: t.id, phase_number: nextPhase, entered_at: iso, notes: "Auto: inoculated" };
+          mutate(
+            { kind: "insert", table: "phase_log", row: entry },
+            () => state.phaseLog.unshift(entry),
+            () => { const i = state.phaseLog.findIndex(p => p.id === entry.id); if (i>=0) state.phaseLog.splice(i,1); }
+          );
+        }
+        closeModal();
+        toast("Inoculation date set", "ok");
+      });
+    }
+  });
+}
+
+/* ---------- observation modal ---------- */
+function openObsModal(t) {
+  openModal({
+    title: `Observation — Tub ${t.tub_number}`,
+    bodyHtml: `
+      <div class="field"><label>Note</label><textarea id="obsNote" placeholder="What do you see?"></textarea></div>
+      <div class="field"><label>Photo (optional)</label><input type="file" id="obsPhoto" accept="image/*"></div>`,
+    footerHtml: `<button class="btn ghost" id="cancelO">Cancel</button><button class="btn primary" id="saveO">Save</button>`,
+    onMount: () => {
+      $("#cancelO").addEventListener("click", closeModal);
+      $("#saveO").addEventListener("click", async () => {
+        const note = $("#obsNote").value.trim();
+        const file = $("#obsPhoto").files[0];
+        if (!note && !file) return;
+        const btn = $("#saveO"); btn.disabled = true; btn.textContent = "Saving…";
+        let photoUrl = null;
+        try { if (file) photoUrl = await uploadPhoto(file, `tub-${t.tub_number}/obs`); }
+        catch (e) { toast("Photo upload failed: " + e.message, "err", 4000); btn.disabled = false; btn.textContent = "Save"; return; }
+        const row = { id: uid(), tub_id: t.id, timestamp: new Date().toISOString(), note, photo_url: photoUrl };
+        mutate(
+          { kind: "insert", table: "observations", row },
+          () => state.observations.unshift(row),
+          () => { const i = state.observations.findIndex(r => r.id === row.id); if (i>=0) state.observations.splice(i,1); }
+        );
+        closeModal();
+        toast("Observation saved", "ok");
+      });
+    }
+  });
+}
+
+/* ---------- harvest modal ---------- */
+function openHarvestModal(t = null) {
+  const tubsOpts = state.tubs.map(x =>
+    `<option value="${x.id}" ${t && t.id === x.id ? "selected" : ""}>Tub ${x.tub_number} — ${escapeHtml(x.strain)}</option>`).join("");
+  openModal({
+    title: `Log Harvest`,
+    bodyHtml: `
+      <div class="field"><label>Tub</label><select id="hTub">${tubsOpts}</select></div>
+      <div class="field-row">
+        <div class="field"><label>Flush #</label><input type="number" id="hFlush" min="1" value="1"></div>
+        <div class="field"><label>Date</label><input type="date" id="hDate" value="${new Date().toISOString().slice(0,10)}"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Wet weight (g)</label><input type="number" id="hWet" step="0.1" min="0"></div>
+        <div class="field"><label>Dry weight (g, optional)</label><input type="number" id="hDry" step="0.1" min="0"></div>
+      </div>
+      <div class="field"><label>Notes (optional)</label><textarea id="hNotes" placeholder="Pin density, fruit size, anything weird…"></textarea></div>
+      <div class="field"><label>Photo (optional)</label><input type="file" id="hPhoto" accept="image/*"></div>`,
+    footerHtml: `<button class="btn ghost" id="cancelH">Cancel</button><button class="btn primary" id="saveH">Save</button>`,
+    onMount: () => {
+      // suggest next flush # for selected tub
+      const refresh = () => {
+        const tid = $("#hTub").value;
+        const flushes = tubHarvests(tid);
+        $("#hFlush").value = (flushes.length ? Math.max(...flushes.map(f => f.flush_number)) + 1 : 1);
+      };
+      $("#hTub").addEventListener("change", refresh);
+      refresh();
+      $("#cancelH").addEventListener("click", closeModal);
+      $("#saveH").addEventListener("click", async () => {
+        const tid = $("#hTub").value;
+        const flush_number = parseInt($("#hFlush").value, 10) || 1;
+        const wet = parseFloat($("#hWet").value);
+        const dry = $("#hDry").value ? parseFloat($("#hDry").value) : null;
+        const date = $("#hDate").value;
+        const notes = $("#hNotes").value.trim() || null;
+        const file = $("#hPhoto").files[0];
+        if (!tid || isNaN(wet)) { toast("Need tub + wet weight", "err"); return; }
+        const btn = $("#saveH"); btn.disabled = true; btn.textContent = "Saving…";
+        let photoUrl = null;
+        try { if (file) photoUrl = await uploadPhoto(file, `harvest/`); }
+        catch (e) { toast("Photo upload failed: " + e.message, "err", 4000); btn.disabled = false; btn.textContent = "Save"; return; }
+        const row = {
+          id: uid(), tub_id: tid, flush_number,
+          harvest_date: new Date(date + "T12:00:00").toISOString(),
+          wet_weight_g: wet, dry_weight_g: dry, notes, photo_url: photoUrl
+        };
+        mutate(
+          { kind: "insert", table: "harvests", row },
+          () => state.harvests.unshift(row),
+          () => { const i = state.harvests.findIndex(r => r.id === row.id); if (i>=0) state.harvests.splice(i,1); }
+        );
+        closeModal();
+        toast(`Logged ${wet.toFixed(0)}g flush #${flush_number}`, "ok");
+      });
+    }
+  });
+}
+
+/* ---------- contam modal ---------- */
+function openContamModal(t = null) {
+  const tubsOpts = state.tubs.map(x =>
+    `<option value="${x.id}" ${t && t.id === x.id ? "selected" : ""}>Tub ${x.tub_number} — ${escapeHtml(x.strain)}</option>`).join("");
+  openModal({
+    title: `Log Contamination`,
+    bodyHtml: `
+      <div class="field"><label>Tub</label><select id="cTub">${tubsOpts}</select></div>
+      <div class="field"><label>Type</label>
+        <select id="cType">
+          <option value="green">Green (Trichoderma)</option>
+          <option value="black">Black (Aspergillus)</option>
+          <option value="pink">Pink (Bacterial)</option>
+          <option value="other">Other</option>
+        </select></div>
+      <div class="field"><label>Action taken</label><textarea id="cAction" placeholder="Isolated · spot-treated H2O2 · terminated · …"></textarea></div>
+      <div class="field"><label>Notes (optional)</label><textarea id="cNotes"></textarea></div>
+      <div class="field"><label>Photo (optional)</label><input type="file" id="cPhoto" accept="image/*"></div>`,
+    footerHtml: `<button class="btn ghost" id="cancelC">Cancel</button><button class="btn primary" id="saveC">Save</button>`,
+    onMount: () => {
+      $("#cancelC").addEventListener("click", closeModal);
+      $("#saveC").addEventListener("click", async () => {
+        const tid = $("#cTub").value;
+        const type = $("#cType").value;
+        const action_taken = $("#cAction").value.trim() || null;
+        const notes = $("#cNotes").value.trim() || null;
+        const file = $("#cPhoto").files[0];
+        if (!tid) return;
+        const btn = $("#saveC"); btn.disabled = true; btn.textContent = "Saving…";
+        let photoUrl = null;
+        try { if (file) photoUrl = await uploadPhoto(file, `contam/`); }
+        catch (e) { toast("Photo upload failed: " + e.message, "err", 4000); btn.disabled = false; btn.textContent = "Save"; return; }
+        const row = { id: uid(), tub_id: tid, detected_at: new Date().toISOString(), type, action_taken, notes, photo_url: photoUrl };
+        mutate(
+          { kind: "insert", table: "contamination_events", row },
+          () => state.contams.unshift(row),
+          () => { const i = state.contams.findIndex(r => r.id === row.id); if (i>=0) state.contams.splice(i,1); }
+        );
+        closeModal();
+        toast(`Logged ${type} contam event`, "ok");
+      });
+    }
+  });
+}
+
+/* ---------- phase guide ---------- */
+function renderPhaseGuide() {
+  const el = $("#phaseAccordion");
+  el.innerHTML = PHASES.map((p, i) => `
+    <div class="accordion-item ${i === 0 ? "open" : ""}" data-ph="${p.n}">
+      <div class="accordion-head">
+        <div class="ph-badge">${p.n}</div>
+        <div style="flex:1;">
+          <div class="accordion-title">${escapeHtml(p.name)}</div>
+          <div class="accordion-meta">${escapeHtml(p.intro)} · ~${p.days} day${p.days===1?"":"s"}</div>
+        </div>
+        <svg class="accordion-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      <div class="accordion-body">
+        <h4>Steps</h4>
+        <ol>${p.steps.map(s => `<li>${escapeHtml(s)}</li>`).join("")}</ol>
+      </div>
+    </div>
+  `).join("");
+  $$(".accordion-head", el).forEach(h => {
+    h.addEventListener("click", () => h.parentElement.classList.toggle("open"));
+  });
+}
+
+/* ---------- harvest view ---------- */
+function renderHarvest() {
+  const t1 = sumWet(state.harvests.filter(h => {
+    const tub = state.tubs.find(x => x.id === h.tub_id); return tub && tub.tub_number === 1;
+  }));
+  const t2 = sumWet(state.harvests.filter(h => {
+    const tub = state.tubs.find(x => x.id === h.tub_id); return tub && tub.tub_number === 2;
+  }));
+  const t3 = sumWet(state.harvests.filter(h => {
+    const tub = state.tubs.find(x => x.id === h.tub_id); return tub && tub.tub_number === 3;
+  }));
+  $("#hT1Wet").textContent = t1.toFixed(0);
+  $("#hT2Wet").textContent = t2.toFixed(0);
+  $("#hT3Wet").textContent = t3.toFixed(0);
+
+  const dryFlushes = state.harvests.filter(h => h.wet_weight_g && h.dry_weight_g);
+  const moist = dryFlushes.length
+    ? Math.round(dryFlushes.reduce((a, h) => a + (1 - h.dry_weight_g/h.wet_weight_g), 0) / dryFlushes.length * 100)
+    : null;
+  $("#hMoist").textContent = moist === null ? "—" : moist;
+
+  // chart: bars per harvest entry, ordered by date, color band by tub
+  const ordered = [...state.harvests].sort((a,b) => new Date(a.harvest_date) - new Date(b.harvest_date));
+  const max = Math.max(1, ...ordered.map(h => h.wet_weight_g || 0));
+  const bars = $("#yieldBars");
+  if (!ordered.length) {
+    bars.innerHTML = `<div class="empty" style="width:100%;">No flushes logged yet.</div>`;
+  } else {
+    bars.innerHTML = ordered.map(h => {
+      const tub = state.tubs.find(x => x.id === h.tub_id);
+      const tn = tub ? tub.tub_number : "?";
+      const pct = Math.round((h.wet_weight_g || 0) / max * 100);
+      return `<div class="bar-col">
+        <div class="bar-value">${(h.wet_weight_g||0).toFixed(0)}g</div>
+        <div class="bar" style="height: ${pct}%;" title="Tub ${tn} · F${h.flush_number} · ${(h.wet_weight_g||0).toFixed(0)}g wet"></div>
+        <div class="bar-label">T${tn}·F${h.flush_number}</div>
+      </div>`;
+    }).join("");
+  }
+
+  // recent list
+  const recent = [...state.harvests].slice(0, 30);
+  $("#harvestList").innerHTML = recent.length === 0 ? `<div class="empty">Click "Log Harvest" to add your first.</div>` :
+    recent.map(h => {
+      const tub = state.tubs.find(x => x.id === h.tub_id);
+      const moist = (h.wet_weight_g && h.dry_weight_g) ? Math.round((1 - h.dry_weight_g/h.wet_weight_g)*100) : null;
+      return `
+        <div class="row">
+          <div class="ts mono">${fmtDate(h.harvest_date)}<br><span class="muted">T${tub?tub.tub_number:"?"}·F${h.flush_number}</span></div>
+          ${h.photo_url ? `<img class="photo" src="${escapeHtml(h.photo_url)}" alt="">` : ""}
+          <div class="text">
+            <b>${(h.wet_weight_g||0).toFixed(0)}g wet</b>${h.dry_weight_g ? ` → <b>${(h.dry_weight_g).toFixed(0)}g dry</b>` : ""}
+            ${moist !== null ? `<span class="chip mono" style="margin-left:8px;">${moist}% moisture loss</span>` : ""}
+            ${h.notes ? `<div class="muted" style="margin-top:4px;">${escapeHtml(h.notes)}</div>` : ""}
+          </div>
+          <div class="actions"><button class="btn ghost sm" data-del-harvest="${h.id}">Delete</button></div>
+        </div>`;
+    }).join("");
+  $$("#harvestList [data-del-harvest]").forEach(b => b.addEventListener("click", () => deleteRow("harvests","harvests", b.dataset.delHarvest)));
+  $("#newHarvestBtn").addEventListener("click", () => openHarvestModal());
+}
+
+/* ---------- contam view ---------- */
+function renderContam() {
+  $("#contamList").innerHTML = state.contams.length === 0 ? `<div class="empty">No contamination events logged. Stay clean.</div>` :
+    state.contams.map(c => {
+      const tub = state.tubs.find(x => x.id === c.tub_id);
+      return `
+        <div class="row">
+          <div class="ts mono">${fmtDate(c.detected_at)}<br><span class="muted">T${tub?tub.tub_number:"?"}</span></div>
+          ${c.photo_url ? `<img class="photo" src="${escapeHtml(c.photo_url)}" alt="">` : ""}
+          <div class="text">
+            <span class="chip ${c.type === "green" ? "green" : c.type === "pink" ? "red" : c.type === "black" ? "" : "amber"}">${escapeHtml(c.type || "other")}</span>
+            ${c.action_taken ? `<div style="margin-top:4px;"><b>Action:</b> ${escapeHtml(c.action_taken)}</div>` : ""}
+            ${c.notes ? `<div class="muted" style="margin-top:4px;">${escapeHtml(c.notes)}</div>` : ""}
+          </div>
+          <div class="actions"><button class="btn ghost sm" data-del-contam="${c.id}">Delete</button></div>
+        </div>`;
+    }).join("");
+  $$("#contamList [data-del-contam]").forEach(b => b.addEventListener("click", () => deleteRow("contamination_events","contams", b.dataset.delContam)));
+  $("#newContamBtn").addEventListener("click", () => openContamModal());
+}
+
+/* ---------- calendar ---------- */
+function renderCalendar() {
+  const cal = $("#calendar");
+  cal.innerHTML = state.tubs.map(t => {
+    const ms = predictedMilestones(t);
+    if (!ms.length) {
+      return `
+        <div class="cal-row">
+          <div class="cal-name">Tub ${t.tub_number}<small>${escapeHtml(t.strain)}</small></div>
+          <div class="cal-track"><div class="cal-seg" style="left:0; right:0; color:var(--text-faint);">no inoculation date set</div></div>
+        </div>`;
+    }
+    const today = new Date();
+    const start = new Date(t.inoculation_date);
+    const end = ms[ms.length-1].exit;
+    const totalMs = end - start;
+    const elapsed = Math.max(0, Math.min(totalMs, today - start));
+    const markerPct = totalMs > 0 ? (elapsed / totalMs) * 100 : 0;
+
+    let cursorPct = 0;
+    const segs = ms.map(m => {
+      const segPct = ((m.exit - m.enter) / totalMs) * 100;
+      const left = cursorPct;
+      cursorPct += segPct;
+      const isCurrent = m.phase.n === t.current_phase;
+      const isDone = m.phase.n < t.current_phase;
+      return `<div class="cal-seg ${isCurrent ? "current" : ""} ${isDone ? "done" : ""}" style="left:${left}%; width:${segPct}%;" title="P${m.phase.n} ${m.phase.name} · ${fmtDate(m.enter)} → ${fmtDate(m.exit)}">${m.phase.short}</div>`;
+    }).join("");
+
+    return `
+      <div class="cal-row">
+        <div class="cal-name">Tub ${t.tub_number}<small>${fmtDate(t.inoculation_date)}</small></div>
+        <div class="cal-track">
+          ${segs}
+          ${(today >= start && today <= end) ? `<div class="cal-marker" style="left:${markerPct}%;"></div>` : ""}
+        </div>
+      </div>`;
+  }).join("") + `
+    <div class="cal-axis">
+      <div></div>
+      <div class="ticks">${PHASES.map(p => `<span>P${p.n}</span>`).join("")}</div>
+    </div>
+  `;
+
+  $("#milestoneCards").innerHTML = state.tubs.map(t => {
+    const ms = predictedMilestones(t);
+    const harvest = ms.find(m => m.phase.n === 5);
+    const pin = ms.find(m => m.phase.n === 4);
+    const reflush = ms.find(m => m.phase.n === 6);
+    return `
+      <div class="info-card">
+        <div class="info-title">Tub ${t.tub_number} · projections</div>
+        <div class="kv">
+          <div class="k">First pin</div><div class="v">${pin ? fmtDate(pin.enter) : "—"}</div>
+          <div class="k">Harvest start</div><div class="v">${harvest ? fmtDate(harvest.enter) : "—"}</div>
+          <div class="k">Reflush</div><div class="v">${reflush ? fmtDate(reflush.enter) : "—"}</div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+/* =====================================================================
+   STARTUP
+===================================================================== */
+async function start() {
+  loadQueue();
+  if (!initSupabase()) return;
+  try {
+    await loadAll();
+    subscribeAll();
+    if (state.offlineQueue.length) flushQueue();
+  } catch (e) {
+    setSync("error", "Init failed");
+    toast("Init error: " + e.message, "err", 6000);
+    console.error(e);
+  }
+}
+start();
+</script>
+</body>
+</html>

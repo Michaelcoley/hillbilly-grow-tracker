@@ -1,0 +1,22 @@
+# secrets
+.env
+.env.*
+*.pem
+*.key
+secrets.json
+credentials.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# dependency caches (none expected, but just in case)
+node_modules/
+.cache/
